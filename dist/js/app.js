@@ -30,9 +30,6 @@ function paddle(X, Y) {
   };
 }
 
-// up: 38
-// down 40
-
 var leftPaddle = new paddle(20,200);
 
 var rightPaddle = new paddle(780,200);
@@ -44,6 +41,16 @@ function ball(X, Y) {
   this.positionX = X;
   this.positionY = Y;
   this.radius = 7;
+  this.speed = {
+    norm: 4,
+    tan: Math.max(Math.min(Math.random(), Math.sqrt(3)), 1/Math.sqrt(3)),
+    x: 0,
+    y: 0
+  };
+  this.calculateSpeed = function() {
+    this.speed.x = this.speed.norm / (Math.sqrt(1 + this.speed.tan * this.speed.tan));
+    this.speed.y = this.speed.x * this.speed.tan;
+  }
   this.render = function() {
     var counterClockWise = true;
     context.beginPath();
@@ -94,5 +101,8 @@ var drawPending = false;
 window.onload = animate(step);
 
 window.addEventListener("keydown", function(event) { leftPaddle.move(event, leftPaddle); }, false);
+
+gameBall.calculateSpeed();
+console.log(gameBall.speed);
 
 },{}]},{},[1]);
