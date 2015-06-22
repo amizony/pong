@@ -140,13 +140,17 @@ function Ball() {
 
     if (this.positionX < leftPaddle.positionX + leftPaddle.width) {
       if ((leftPaddle.positionY < Math.max(this.positionY, this.positionY - this.speed.y)) && (Math.min(this.positionY, this.positionY - this.speed.y) < leftPaddle.positionY + leftPaddle.length)) {
-        this.leftPaddleBounce();
+        if (this.positionX - this.speed.x > leftPaddle.positionX) {
+          this.leftPaddleBounce();
+        }
       }
     }
 
     if (this.positionX > rightPaddle.positionX) {
       if ((rightPaddle.positionY < Math.max(this.positionY, this.positionY - this.speed.y)) && (Math.min(this.positionY, this.positionY - this.speed.y) < rightPaddle.positionY + rightPaddle.length)) {
-        this.rightPaddleBounce();
+        if (this.positionX - this.speed.x < rightPaddle.positionX + rightPaddle.width) {
+          this.rightPaddleBounce();
+        }
       }
     }
     // game over
