@@ -1,4 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var canvas = {
+  xSize: 800,
+  ySize: 600
+};
+
+
 // paddles
 
 function Paddle(X, Y) {
@@ -39,8 +45,8 @@ function Paddle(X, Y) {
       px = Math.min(px, this.speed);
   }
     this.positionY += this.speed;
-    if (this.positionY > 600 - this.length) {
-      this.positionY = 600 - this.length;
+    if (this.positionY > canvas.ySize - this.length) {
+      this.positionY = canvas.ySize - this.length;
     }
   };
 }
@@ -48,8 +54,8 @@ function Paddle(X, Y) {
 // ball
 
 function Ball() {
-  this.positionX = 400;
-  this.positionY = 300;
+  this.positionX = canvas.xSize / 2;
+  this.positionY = canvas.ySize / 2;
   this.radius = 7;
   this.speed = {
     norm: 0,
@@ -67,8 +73,8 @@ function Ball() {
     }
   };
   this.initPos = function() {
-    this.positionX = 400;
-    this.positionY = Math.random()*400 + 100;
+    this.positionX = canvas.xSize / 2;
+    this.positionY = Math.random() * (canvas.ySize / 2 -100) + 100;
   };
   this.calculateXYSpeed = function() {
     if (this.speed.x > 0) {
@@ -113,7 +119,7 @@ function Ball() {
     this.positionY += this.speed.y;
 
     // border bouncing
-    if ((this.positionY > 600 - this.radius) || (this.positionY < 0 + this.radius)) {
+    if ((this.positionY > canvas.ySize - this.radius) || (this.positionY < 0 + this.radius)) {
       this.borderBouncing();
       this.bounceSpeedUp();
     }
@@ -137,7 +143,7 @@ function Ball() {
     }
 
     // game over
-    if (this.positionX > 800 + this.radius) {
+    if (this.positionX > canvas.xSize + this.radius) {
       console.log("Player Wins!");
       this.initPos();
       this.initSpeed();
@@ -166,7 +172,7 @@ function AI() {
 // display
 
 function render() {
-  context.clearRect(0, 0, 800, 600);
+  context.clearRect(0, 0, canvas.xSize, canvas.ySize);
   leftPaddle.move();
   leftPaddle.render();
   cpu.act();
@@ -197,7 +203,7 @@ function step() {
 
 var leftPaddle = new Paddle(20,200);
 
-var rightPaddle = new Paddle(780,200);
+var rightPaddle = new Paddle(canvas.xSize - 20,200);
 
 var gameBall = new Ball();
 
