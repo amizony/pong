@@ -79,21 +79,31 @@ function ball() {
     this.calculateXYSpeed();
     console.log(this.speed);
   };
+  this.borderBouncing = function() {
+    this.speed.y = -this.speed.y;
+    this.speed.tan = -this.speed.tan;
+  };
+  this.paddleBouncing = function(paddle) {
+    this.speed.x = -this.speed.x;
+    this.calculateVectSpeed();
+    this.speed.tan = 2 * Math.sqrt(3) * (this.positionY - paddle.positionY) / (paddle.length) - Math.sqrt(3);
+    this.calculateXYSpeed();
+  };
   this.move = function() {
     this.positionX += this.speed.x;
     this.positionY += this.speed.y;
 
     // border bouncing
     if ((this.positionY > 600 - this.radius) || (this.positionY < 0 + this.radius)) {
-      this.speed.y = -this.speed.y;
-      this.speed.tan = -this.speed.tan;
+      this.borderBouncing();
       this.bounceSpeedUp();
     }
     leftPaddle.positionX + leftPaddle.width
     // left paddle bouncing
     if (((this.positionX - this.radius) < (leftPaddle.positionX + leftPaddle.width)) && (this.positionX > (leftPaddle.positionX + leftPaddle.width))) {
       if ((leftPaddle.positionY < this.positionY) && (this.positionY < (leftPaddle.positionY + leftPaddle.length))) {
-        this.speed.x = -this.speed.x;
+        this.positionX = leftPaddle.positionX + leftPaddle.width + this.radius;
+        this.paddleBouncing(leftPaddle);
         this.bounceSpeedUp();
       }
     }
@@ -101,15 +111,14 @@ function ball() {
     // right paddle bouncing
     if (((this.positionX + this.radius) > rightPaddle.positionX) && (this.positionX < rightPaddle.positionX)) {
       if ((rightPaddle.positionY < this.positionY) && (this.positionY < (rightPaddle.positionY + rightPaddle.length))) {
-        this.speed.x = -this.speed.x;
+        this.positionX = rightPaddle.positionX - this.radius;
+        this.paddleBouncing(rightPaddle);
         this.bounceSpeedUp();
       }
     }
 
     // game over
     if ((this.positionX > 800 + this.radius) || (this.positionX < 0 - this.radius)) {
-      this.speed.x = 0;
-      this.speed.y = 0;
       console.log("Victory");
       this.initPos();
       this.initSpeed();
