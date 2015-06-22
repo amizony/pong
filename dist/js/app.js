@@ -96,58 +96,67 @@ function Ball() {
     context.fill();
   };
   this.bounceSpeedUp = function() {
-    this.calculateVectSpeed();
     this.speed.norm += 0.1;
     this.calculateXYSpeed();
     console.log(this.speed);
   };
-  this.borderBouncing = function() {
+  this.upBorderBounce = function() {
+    this.positionY = -this.positionY;
     this.speed.y = -this.speed.y;
-    this.speed.tan = -this.speed.tan;
+    this.calculateVectSpeed();
+    this.bounceSpeedUp();
   };
-  this.paddleBouncing = function(paddle) {
+  this.downBorderBounce = function() {
+    this.positionY = canvas.ySize * 2 - this.positionY;
+    this.speed.y = -this.speed.y;
+    this.calculateVectSpeed();
+    this.bounceSpeedUp();
+  };
+  this.leftPaddleBounce = function() {
+    this.positionX = (leftPaddle.positionX + leftPaddle.width) * 2 - this.positionX;
     this.speed.x = -this.speed.x;
     this.calculateVectSpeed();
-    this.speed.tan = 2 * Math.sqrt(3) * (this.positionY - paddle.positionY) / (paddle.length) - Math.sqrt(3);
-    if (paddle.positionX > 400) {
-      this.speed.tan = -this.speed.tan;
-    }
+    this.speed.tan = 2 * Math.sqrt(3) * (this.positionY - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
     this.calculateXYSpeed();
+    this.bounceSpeedUp();
+  };
+  this.rightPaddleBounce = function() {
+    this.positionX = rightPaddle.positionX * 2 - this.positionX;
+    this.speed.x = -this.speed.x;
+    this.calculateVectSpeed();
+    this.speed.tan = -2 * Math.sqrt(3) * (this.positionY - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
+    this.calculateXYSpeed();
+    this.bounceSpeedUp();
   };
   this.move = function() {
     this.positionX += this.speed.x;
     this.positionY += this.speed.y;
 
-    // border bouncing
-    if ((this.positionY > canvas.ySize - this.radius) || (this.positionY < 0 + this.radius)) {
-      this.borderBouncing();
-      this.bounceSpeedUp();
+    if (this.positionY < 0) {
+      this.upBorderBounce();
     }
-    leftPaddle.positionX + leftPaddle.width
-    // left paddle bouncing
-    if (((this.positionX - this.radius) < (leftPaddle.positionX + leftPaddle.width)) && (this.positionX > (leftPaddle.positionX + leftPaddle.width))) {
-      if ((leftPaddle.positionY < this.positionY) && (this.positionY < (leftPaddle.positionY + leftPaddle.length))) {
-        this.positionX = leftPaddle.positionX + leftPaddle.width + this.radius;
-        this.paddleBouncing(leftPaddle);
-        this.bounceSpeedUp();
+
+    if (this.positionY > canvas.ySize) {
+      this.downBorderBounce();
+    }
+
+    if (this.positionX < leftPaddle.positionX + leftPaddle.width) {
+      if ((leftPaddle.positionY < Math.max(this.positionY, this.positionY - this.speed.y)) && (Math.min(this.positionY, this.positionY - this.speed.y) < leftPaddle.positionY + leftPaddle.length)) {
+        this.leftPaddleBounce();
       }
     }
 
-    // right paddle bouncing
-    if (((this.positionX + this.radius) > rightPaddle.positionX) && (this.positionX < rightPaddle.positionX)) {
-      if ((rightPaddle.positionY < this.positionY) && (this.positionY < (rightPaddle.positionY + rightPaddle.length))) {
-        this.positionX = rightPaddle.positionX - this.radius;
-        this.paddleBouncing(rightPaddle);
-        this.bounceSpeedUp();
+    if (this.positionX > rightPaddle.positionX) {
+      if ((rightPaddle.positionY < Math.max(this.positionY, this.positionY - this.speed.y)) && (Math.min(this.positionY, this.positionY - this.speed.y) < rightPaddle.positionY + rightPaddle.length)) {
+        this.rightPaddleBounce();
       }
     }
-
     // game over
-    if (this.positionX > canvas.xSize + this.radius) {
+    if (this.positionX > canvas.xSize) {
       console.log("Player Wins!");
       this.initPos();
       this.initSpeed();
-    } else if (this.positionX < 0 - this.radius) {
+    } else if (this.positionX < 0) {
       console.log("CPU Wins!");
       this.initPos();
       this.initSpeed();
