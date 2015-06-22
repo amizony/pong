@@ -15,18 +15,23 @@ function Paddle(X, Y) {
   };
   this.move = function(event) {
     if (event.keyCode == 38) {
-      this.positionY -= this.speed;
-      if (this.positionY < 0) {
-        this.positionY = 0;
-      }
+      this.moveUp();
     }
     if (event.keyCode == 40) {
-      this.positionY += this.speed;
-      if (this.positionY > 600 - this.length) {
-        this.positionY = 600 - this.length;
-      }
+      this.moveDown();
     }
-
+  };
+  this.moveUp = function() {
+    this.positionY -= this.speed;
+    if (this.positionY < 0) {
+      this.positionY = 0;
+    }
+  };
+  this.moveDown = function() {
+    this.positionY += this.speed;
+    if (this.positionY > 600 - this.length) {
+      this.positionY = 600 - this.length;
+    }
   };
 }
 
@@ -130,13 +135,26 @@ function Ball() {
   };
 }
 
+// AI
+
+function AI() {
+  this.act = function() {
+    if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
+      rightPaddle.moveUp();
+    } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
+      rightPaddle.moveDown();
+    }
+  };
+}
 
 
-// functions
+
+// display
 
 function render() {
   context.clearRect(0, 0, 800, 600);
   leftPaddle.render();
+  cpu.act();
   rightPaddle.render();
   gameBall.move();
   gameBall.render();
@@ -164,10 +182,11 @@ function step() {
 
 var leftPaddle = new Paddle(20,200);
 
-var rightPaddle = new Paddle(780,50);
-rightPaddle.length=500;
+var rightPaddle = new Paddle(780,200);
 
 var gameBall = new Ball();
+
+var cpu = new AI();
 
 gameBall.initPos();
 gameBall.initSpeed();
