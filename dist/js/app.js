@@ -137,8 +137,12 @@ function Ball() {
     }
 
     // game over
-    if ((this.positionX > 800 + this.radius) || (this.positionX < 0 - this.radius)) {
-      console.log("Victory for someone");
+    if (this.positionX > 800 + this.radius) {
+      console.log("Player Wins!");
+      this.initPos();
+      this.initSpeed();
+    } else if (this.positionX < 0 - this.radius) {
+      console.log("CPU Wins!");
       this.initPos();
       this.initSpeed();
     }
@@ -150,9 +154,9 @@ function Ball() {
 function AI() {
   this.act = function() {
     if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
-      rightPaddle.moveUp(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY)));
+      rightPaddle.moveUp(Math.max(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY))), 4);
     } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
-      rightPaddle.moveDown(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)));
+      rightPaddle.moveDown(Math.max(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY))), 4);
     }
   };
 }
