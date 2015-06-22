@@ -1,18 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// basic grid for visual
-function drawGrid() {
-  for (var x = 10; x < 800; x += 10) {
-    context.moveTo(x, 0);
-    context.lineTo(x, 600);
-  }
-  for (var y = 10; y < 600; y += 10) {
-    context.moveTo(0, y);
-    context.lineTo(800, y);
-  }
-  context.strokeStyle = "#eee";
-  context.stroke();
-}
-
 // paddles
 
 function paddle(X, Y) {
@@ -20,13 +6,32 @@ function paddle(X, Y) {
   this.positionY = Y;
   this.length = 100;
   this.width = 6;
+  this.speed = 5;
   this.render = function() {
     context.beginPath();
     context.rect(this.positionX, this.positionY, this.width, this.length);
     context.fillStyle = "#000";
     context.fill();
   };
+  this.move = function(event, paddle) {
+    if (event.keyCode == 38) {
+      paddle.positionY -= 5;
+      if (paddle.positionY < 0) {
+        paddle.positionY = 0;
+      }
+    }
+    if (event.keyCode == 40) {
+      paddle.positionY += 5;
+      if (paddle.positionY > 600 - paddle.length) {
+        paddle.positionY = 600 - paddle.length;
+      }
+    }
+
+  };
 }
+
+// up: 38
+// down 40
 
 var leftPaddle = new paddle(20,200);
 
@@ -55,6 +60,7 @@ var gameBall = new ball(450,250);
 
 function render() {
   drawPending = false;
+  context.clearRect(0, 0, 800, 600);
   leftPaddle.render();
   rightPaddle.render();
   gameBall.render();
@@ -82,11 +88,11 @@ var gameCanvas = document.getElementById("game");
 
 var context = gameCanvas.getContext("2d");
 
-drawGrid();
-
 
 var drawPending = false;
 
 window.onload = animate(step);
+
+window.addEventListener("keydown", function(event) { leftPaddle.move(event, leftPaddle); }, false);
 
 },{}]},{},[1]);
