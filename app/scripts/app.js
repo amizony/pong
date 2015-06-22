@@ -53,11 +53,27 @@ var gameBall = new ball(450,250);
 // functions
 
 function render() {
+  drawPending = false;
   leftPaddle.render();
   rightPaddle.render();
   gameBall.render();
 }
 
+var animate = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame    ||
+        window.oRequestAnimationFrame      ||
+        window.msRequestAnimationFrame     ||
+        function(callback) { window.setTimeout(callback, 1000/60) };
+
+
+function step() {
+  if (!drawPending) {
+    drawPending = true;
+    render();
+    animate(step);
+  }
+}
 
 // main
 
@@ -67,4 +83,7 @@ var context = gameCanvas.getContext("2d");
 
 drawGrid();
 
-window.onload = render;
+
+var drawPending = false;
+
+window.onload = animate(step);
