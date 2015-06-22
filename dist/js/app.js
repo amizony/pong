@@ -32,7 +32,7 @@ function paddle(X, Y) {
 
 var leftPaddle = new paddle(20,200);
 
-var rightPaddle = new paddle(780,200);
+var rightPaddle = new paddle(780,400);
 
 
 // ball
@@ -43,7 +43,7 @@ function ball(X, Y) {
   this.radius = 7;
   this.speed = {
     norm: 4,
-    tan: Math.max(Math.min(Math.random(), Math.sqrt(3)), 1/Math.sqrt(3)),
+    tan: Math.max(Math.min(Math.random(), 2 + Math.sqrt(3)), 2 - Math.sqrt(3)),
     x: 0,
     y: 0
   };
@@ -58,6 +58,29 @@ function ball(X, Y) {
     context.fillStyle = "#000";
     context.fill();
   };
+  this.move = function() {
+    this.positionX += this.speed.x;
+    this.positionY += this.speed.y;
+    if ((this.positionY > 600 - this.radius) || (this.positionY < 0 + this.radius)) {
+      this.speed.y = -this.speed.y;
+    }
+    if (this.positionX < (20 + this.radius + leftPaddle.width)) {
+      if ((leftPaddle.positionY < this.positionY) && (this.positionY < (leftPaddle.positionY + leftPaddle.length))) {
+        this.speed.x = -this.speed.x;
+      }
+    }
+    if (this.positionX > (780 - this.radius)) {
+      if ((rightPaddle.positionY < this.positionY) && (this.positionY < (rightPaddle.positionY + rightPaddle.length))) {
+        this.speed.x = -this.speed.x;
+      }
+    }
+    if ((this.positionX > 800 + this.radius) || (this.positionX < 0 - this.radius)) {
+      this.speed.x = 0;
+      this.speed.y = 0;
+      console.log("Victory");
+      this.positionX = 400;
+    }
+  };
 }
 
 var gameBall = new ball(450,250);
@@ -70,6 +93,7 @@ function render() {
   context.clearRect(0, 0, 800, 600);
   leftPaddle.render();
   rightPaddle.render();
+  gameBall.move();
   gameBall.render();
 }
 
