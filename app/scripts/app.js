@@ -186,6 +186,7 @@ function render() {
   rightPaddle.render();
   gameBall.move();
   gameBall.render();
+  frames += 1;
 }
 
 var animate = window.requestAnimationFrame ||
@@ -218,7 +219,17 @@ var cpu = new AI();
 
 gameBall.initPos();
 gameBall.initSpeed();
-console.log(gameBall.speed);
+
+
+var frames = 0;
+var fps = 0;
+
+window.setInterval( function() {
+  fps = frames;
+  frames = 0;
+  console.log(fps);
+}, 1000);
+
 
 // main
 
