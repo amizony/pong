@@ -1,6 +1,6 @@
 // paddles
 
-function paddle(X, Y) {
+function Paddle(X, Y) {
   this.positionX = X;
   this.positionY = Y;
   this.length = 100;
@@ -31,7 +31,7 @@ function paddle(X, Y) {
 
 // ball
 
-function ball() {
+function Ball() {
   this.positionX = 400;
   this.positionY = 300;
   this.radius = 7;
@@ -134,7 +134,6 @@ function ball() {
 // functions
 
 function render() {
-  drawPending = false;
   context.clearRect(0, 0, 800, 600);
   leftPaddle.render();
   rightPaddle.render();
@@ -151,11 +150,10 @@ var animate = window.requestAnimationFrame ||
 
 
 function step() {
-  if (!drawPending) {
-    drawPending = true;
-    render();
-    animate(step);
-  }
+  var renderNextFrame = new Promise(function(resolve, reject) {
+    resolve(render());
+  });
+  renderNextFrame.then(function() { animate(step); });
 }
 
 
@@ -163,18 +161,16 @@ function step() {
 
 
 
-var leftPaddle = new paddle(20,200);
+var leftPaddle = new Paddle(20,200);
 
-var rightPaddle = new paddle(780,50);
+var rightPaddle = new Paddle(780,50);
 rightPaddle.length=500;
 
-var gameBall = new ball();
+var gameBall = new Ball();
 
 gameBall.initPos();
 gameBall.initSpeed();
 console.log(gameBall.speed);
-
-var drawPending = false;
 
 // main
 
