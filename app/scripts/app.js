@@ -97,7 +97,6 @@ function Ball() {
   this.bounceSpeedUp = function() {
     this.speed.norm += 0.1;
     this.calculateXYSpeed();
-    console.log(this.speed);
   };
   this.upBorderBounce = function() {
     this.positionY = -this.positionY;
@@ -112,7 +111,7 @@ function Ball() {
     this.bounceSpeedUp();
   };
   this.leftPaddleBounce = function() {
-    this.positionX = (leftPaddle.positionX + leftPaddle.width) * 2 - this.positionX;
+    this.positionX = Math.max((leftPaddle.positionX + leftPaddle.width) * 2 - this.positionX, leftPaddle.positionX + leftPaddle.width);
     this.speed.x = -this.speed.x;
     this.calculateVectSpeed();
     this.speed.tan = 2 * Math.sqrt(3) * (this.positionY - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
@@ -120,7 +119,7 @@ function Ball() {
     this.bounceSpeedUp();
   };
   this.rightPaddleBounce = function() {
-    this.positionX = rightPaddle.positionX * 2 - this.positionX;
+    this.positionX = Math.min(rightPaddle.positionX * 2 - this.positionX, rightPaddle.positionX);
     this.speed.x = -this.speed.x;
     this.calculateVectSpeed();
     this.speed.tan = -2 * Math.sqrt(3) * (this.positionY - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
