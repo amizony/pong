@@ -5,24 +5,24 @@ function paddle(X, Y) {
   this.positionY = Y;
   this.length = 100;
   this.width = 6;
-  this.speed = 20;
+  this.speed = 10;
   this.render = function() {
     context.beginPath();
     context.rect(this.positionX, this.positionY, this.width, this.length);
     context.fillStyle = "#000";
     context.fill();
   };
-  this.move = function(event, paddle) {
+  this.move = function(event) {
     if (event.keyCode == 38) {
-      paddle.positionY -= 5;
-      if (paddle.positionY < 0) {
-        paddle.positionY = 0;
+      this.positionY -= this.speed;
+      if (this.positionY < 0) {
+        this.positionY = 0;
       }
     }
     if (event.keyCode == 40) {
-      paddle.positionY += 5;
-      if (paddle.positionY > 600 - paddle.length) {
-        paddle.positionY = 600 - paddle.length;
+      this.positionY += this.speed;
+      if (this.positionY > 600 - this.length) {
+        this.positionY = 600 - this.length;
       }
     }
 
@@ -87,6 +87,9 @@ function ball() {
     this.speed.x = -this.speed.x;
     this.calculateVectSpeed();
     this.speed.tan = 2 * Math.sqrt(3) * (this.positionY - paddle.positionY) / (paddle.length) - Math.sqrt(3);
+    if (paddle.positionX > 400) {
+      this.speed.tan = -this.speed.tan;
+    }
     this.calculateXYSpeed();
   };
   this.move = function() {
@@ -162,8 +165,8 @@ function step() {
 
 var leftPaddle = new paddle(20,200);
 
-var rightPaddle = new paddle(780,400);
-
+var rightPaddle = new paddle(780,50);
+rightPaddle.length=500;
 
 var gameBall = new ball();
 
@@ -181,4 +184,4 @@ var context = gameCanvas.getContext("2d");
 
 window.onload = animate(step);
 
-window.addEventListener("keydown", function(event) { leftPaddle.move(event, leftPaddle); }, false);
+window.addEventListener("keydown", function(event) { leftPaddle.move.apply(leftPaddle, [event]); }, false);
