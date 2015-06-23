@@ -1,11 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var canvas = {
-  xSize: 800,
-  ySize: 600
-};
-
-
-// paddles
+// -------------------------------------------
+// Paddle Object
 
 function Paddle(X, Y) {
   this.positionX = X;
@@ -20,10 +15,10 @@ function Paddle(X, Y) {
     context.fill();
   };
   this.move = function() {
-    if (mu) {
+    if (movingUp) {
       this.moveUp();
     }
-    if (md) {
+    if (movingDown) {
       this.moveDown();
     }
   };
@@ -51,7 +46,9 @@ function Paddle(X, Y) {
   };
 }
 
-// ball
+
+// -------------------------------------------
+// Ball Object
 
 function Ball() {
   this.positionX = canvas.xSize / 2;
@@ -167,10 +164,12 @@ function Ball() {
   };
 }
 
+
+// -------------------------------------------
 // AI
 
 function AI() {
-  this.act = function() {
+  this.decide = function() {
     if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
       rightPaddle.moveUp(Math.max(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY))), 4);
     } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
@@ -180,19 +179,8 @@ function AI() {
 }
 
 
-
-// display
-
-function render() {
-  context.clearRect(0, 0, canvas.xSize, canvas.ySize);
-  leftPaddle.move();
-  leftPaddle.render();
-  cpu.act();
-  rightPaddle.render();
-  gameBall.move();
-  gameBall.render();
-  frames += 1;
-}
+// -------------------------------------------
+// Engine
 
 var animate = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -201,70 +189,101 @@ var animate = window.requestAnimationFrame ||
         window.msRequestAnimationFrame     ||
         function(callback) { window.setTimeout(callback, 1000/60) };
 
-
 function step() {
+
+  var calculateNextFrame = new Promise(function(resolve, reject) {
+    resolve(calculate());
+  });
+
   var renderNextFrame = new Promise(function(resolve, reject) {
     resolve(render());
   });
-  renderNextFrame.then(function() { animate(step); });
+
+  calculateNextFrame
+    .then(function() { return renderNextFrame; })
+    .then(function() { return animate(step); });
+}
+
+function calculate() {
+  leftPaddle.move();
+  cpu.decide();
+  gameBall.move();
+}
+
+function render() {
+  context.clearRect(0, 0, canvas.xSize, canvas.ySize);
+  leftPaddle.render();
+  rightPaddle.render();
+  gameBall.render();
+  frames += 1;
 }
 
 
-// init
+// -------------------------------------------
+// Game Initialisation
 
+// canvas
+var canvas = {
+  xSize: 800,
+  ySize: 600
+};
+var gameCanvas = document.getElementById("game");
+var context = gameCanvas.getContext("2d");
 
-
+// paddles
 var leftPaddle = new Paddle(20,200);
-
 var rightPaddle = new Paddle(canvas.xSize - 20,200);
 
+// ball
 var gameBall = new Ball();
-
-var cpu = new AI();
-
 gameBall.initPos();
 gameBall.initSpeed();
 
+// ai
+var cpu = new AI();
 
+// fps count
 var frames = 0;
 var fps = 0;
 
+// player inputs
+var movingUp = false;
+var movingDown = false;
+
+
+// -------------------------------------------
+// Main
+
+// fps count
 window.setInterval( function() {
   fps = frames;
   frames = 0;
   console.log(fps);
 }, 1000);
 
-
-// main
-
-var gameCanvas = document.getElementById("game");
-
-var context = gameCanvas.getContext("2d");
-
+// animation
 window.onload = animate(step);
 
-
-var mu = false;
-var md = false;
-
+// player inputs
+    // key pressed
 window.addEventListener("keydown", function(event) {
   if (event.keyCode == 38) {
-    mu = true;
-    md = false;
+    movingUp = true;
+    movingDown = false;
   }
   if (event.keyCode == 40) {
-    md = true;
-    mu = false;
+    movingDown = true;
+    movingUp = false;
   }
 }, false);
 
+    // key released
 window.addEventListener("keyup", function(event) {
   if (event.keyCode == 38) {
-    mu = false;
+    movingUp = false;
   }
   if (event.keyCode == 40) {
-    md = false;
+    movingDown = false;
   }
 }, false);
 
