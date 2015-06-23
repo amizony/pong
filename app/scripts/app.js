@@ -31,8 +31,11 @@ function Paddle(X, Y, maxSpeed) {
   this.width = 6;
   this.speed = maxSpeed;
   this.render = function() {
+    var counterClockWise = true;
     context.beginPath();
-    context.rect(this.positionX, this.positionY, this.width, this.length);
+    context.rect(this.positionX, this.positionY + this.width/2, this.width, this.length - this.width);
+    context.arc(this.positionX + this.width/2, this.positionY + this.width/2, this.width/2, 0, Math.PI, counterClockWise);
+    context.arc(this.positionX + this.width/2, this.positionY - this.width/2 + this.length, this.width/2, 2 * Math.PI, Math.PI, !counterClockWise);
     context.fillStyle = "#eee";
     context.fill();
   };
