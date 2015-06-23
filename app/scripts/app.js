@@ -323,9 +323,10 @@ var movingDown = false;
 
 // fps count
 window.setInterval( function() {
-  fps = frames;
+  var fpsPosition = document.getElementById("fps-div");
+  fps = "fps: " + frames;
   frames = 0;
-  console.log(fps);
+  fpsPosition.innerHTML = fps;
 }, 1000);
 
 // animation

@@ -20,3 +20,7 @@ canvas {
   display: block;
   border: 1px solid black;
   margin: 0 auto; }
+
+#fps-div {
+  width: 800px;
+  margin: 0 auto; }
