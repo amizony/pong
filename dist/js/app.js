@@ -198,7 +198,7 @@ function ScoreCounter() {
   this.addPointLeft = function() {
     this.leftScore += 1;
     this.updateDisplay();
-    if (this.leftScore > 2) {
+    if (this.leftScore > 0) {
       this.victory("Player");
       return false;
     } else {
@@ -208,7 +208,7 @@ function ScoreCounter() {
   this.addPointRight = function() {
     this.rightScore += 1;
     this.updateDisplay();
-    if (this.rightScore > 2) {
+    if (this.rightScore > 0) {
       this.victory("CPU");
       return false;
     } else {
@@ -224,6 +224,16 @@ function ScoreCounter() {
   };
   this.victory = function(side) {
     console.log(side + " wins!");
+    playing = false;
+  };
+  this.render = function() {
+    context.font = "bold 30px sans-serif";
+    context.fillText("Game Over!", 350, 300);
+  };
+  this.resetScore = function() {
+    this.leftScore = 0;
+    this.rightScore = 0;
+    this.updateDisplay();
   };
 }
 
@@ -261,9 +271,13 @@ function calculate() {
 
 function render() {
   context.clearRect(0, 0, canvas.xSize, canvas.ySize);
-  leftPaddle.render();
-  rightPaddle.render();
-  gameBall.render();
+  if (playing) {
+    leftPaddle.render();
+    rightPaddle.render();
+    gameBall.render();
+  } else {
+    scoreTable.render();
+  }
   frames += 1;
 }
 
@@ -294,6 +308,7 @@ var cpu = new AI();
 
 // score
 var scoreTable = new ScoreCounter();
+var playing = true;
 
 // fps count
 var frames = 0;
@@ -327,6 +342,11 @@ window.addEventListener("keydown", function(event) {
   if (event.keyCode == 40) {
     movingDown = true;
     movingUp = false;
+  }
+  if ((event.keyCode == 32) && (playing === false)) {
+    playing = true;
+    gameBall.initSpeed();
+    scoreTable.resetScore();
   }
 }, false);
 
