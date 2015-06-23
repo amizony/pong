@@ -14,6 +14,13 @@ function calculateBounceAbscissa(Ax, Ay, tan) {
   return Math.sqrt((Ax*Ax + Ay*Ay) / (1 + tan*tan));
 }
 
+function convertColor(rgb) {
+  var r = rgb[0].toString(16);
+  var g = rgb[1].toString(16);
+  var b = rgb[2].toString(16);
+  return "#" + r + g + b ;
+}
+
 
 // -------------------------------------------
 // Paddle Object
@@ -70,7 +77,7 @@ function Ball() {
   this.positionX = canvas.xSize / 2;
   this.positionY = canvas.ySize / 2;
   this.radius = 7;
-  this.color = "#fff";
+  this.color = [0, 15, 0];
   this.speed = {
     norm: 0,
     tan: 0,
@@ -103,19 +110,17 @@ function Ball() {
     this.speed.tan = this.speed.y / this.speed.x;
   };
   this.changeColor = function() {
-    var red = Math.round(Math.random() * 255);
-    var green = Math.round(Math.random() * 255);
-    var blue = Math.round(Math.random() * 255);
-    red = red.toString(16);
-    green = green.toString(16);
-    blue = blue.toString(16);
-    this.color = "#" + red + green + blue;
-  }
+    if (this.color[0] < 15) {
+      this.color[0] += 1;
+    } else if (this.color[1] > 0) {
+      this.color[1] -= 1;
+    }
+  };
   this.render = function() {
     var counterClockWise = true;
     context.beginPath();
     context.arc(this.positionX, this.positionY, this.radius, 0, 2 * Math.PI, counterClockWise);
-    context.fillStyle = this.color;
+    context.fillStyle = convertColor(this.color);
     context.fill();
   };
   this.bounceSpeedUp = function() {
@@ -198,6 +203,7 @@ function Ball() {
     if (this.positionX > canvas.xSize) {
       var nextRound = scoreTable.addPointLeft();
       this.initPos();
+      this.color = [0,15,0];
       if (nextRound) {
         this.initSpeed();
       } else {
