@@ -130,7 +130,7 @@ function Ball() {
       y: intersect(this.positionX - this.speed.x, this.positionY - this.speed.y, this.positionX, this.positionY, leftPaddle.positionX + leftPaddle.width)
     };
     if ((impact.y < leftPaddle.positionY) || (impact.y > leftPaddle.positionY + leftPaddle.length)) {
-      console.alert("Outer paddle bounce");
+      console.log("Outer paddle bounce");
     }
     this.speed.tan = 2 * Math.sqrt(3) * (impact.y - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
     var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
@@ -146,7 +146,7 @@ function Ball() {
       y: intersect(this.positionX - this.speed.x, this.positionY - this.speed.y, this.positionX, this.positionY, rightPaddle.positionX)
     };
     if ((impact.y < rightPaddle.positionY) || (impact.y > rightPaddle.positionY + rightPaddle.length)) {
-      console.alert("Outer paddle bounce");
+      console.log("Outer paddle bounce");
     }
     this.speed.tan = -2 * Math.sqrt(3) * (impact.y - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
     var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
