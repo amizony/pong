@@ -80,6 +80,7 @@ function Ball() {
   this.positionY = canvas.ySize / 2;
   this.radius = 7;
   this.color = [0, 15, 0];
+  this.bounceCount = 0;
   this.speed = {
     norm: 0,
     tan: 0,
@@ -112,10 +113,14 @@ function Ball() {
     this.speed.tan = this.speed.y / this.speed.x;
   };
   this.changeColor = function() {
-    if (this.color[0] < 15) {
-      this.color[0] += 1;
-    } else if (this.color[1] > 0) {
-      this.color[1] -= 1;
+    this.bounceCount += 1;
+    if (this.bounceCount == 5) {
+      this.bounceCount = 0;
+      if (this.color[0] < 15) {
+        this.color[0] = Math.min(this.color[0] + 3, 15);
+      } else if (this.color[1] > 0) {
+        this.color[1] = Math.max(this.color[1] - 3, 0);
+      }
     }
   };
   this.render = function() {
@@ -215,6 +220,7 @@ function Ball() {
     } else if (this.positionX < 0) {
       var nextRound = scoreTable.addPointRight();
       this.initPos();
+      this.color = [0,15,0];
       if (nextRound) {
         this.initSpeed();
       } else {
