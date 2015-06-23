@@ -2,12 +2,12 @@
 // -------------------------------------------
 // Paddle Object
 
-function Paddle(X, Y) {
+function Paddle(X, Y, maxSpeed) {
   this.positionX = X;
   this.positionY = Y;
   this.length = 100;
   this.width = 6;
-  this.speed = 10;
+  this.speed = maxSpeed;
   this.render = function() {
     context.beginPath();
     context.rect(this.positionX, this.positionY, this.width, this.length);
@@ -171,9 +171,9 @@ function Ball() {
 function AI() {
   this.decide = function() {
     if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
-      rightPaddle.moveUp(Math.max(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY))), 4);
+      rightPaddle.moveUp(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY)));
     } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
-      rightPaddle.moveDown(Math.max(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY))), 4);
+      rightPaddle.moveDown(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)));
     }
   };
 }
@@ -231,8 +231,9 @@ var gameCanvas = document.getElementById("game");
 var context = gameCanvas.getContext("2d");
 
 // paddles
-var leftPaddle = new Paddle(20,200);
-var rightPaddle = new Paddle(canvas.xSize - 20,200);
+var paddleMaxSpeed = 8;
+var leftPaddle = new Paddle(20, 200, paddleMaxSpeed);
+var rightPaddle = new Paddle(canvas.xSize - 20, 200 ,paddleMaxSpeed / 2);
 
 // ball
 var gameBall = new Ball();
