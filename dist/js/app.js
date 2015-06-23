@@ -153,15 +153,23 @@ function Ball() {
     }
     // game over
     if (this.positionX > canvas.xSize) {
-      console.log("Player Wins!");
-      scoreTable.addPointLeft();
+      var nextRound = scoreTable.addPointLeft();
       this.initPos();
-      this.initSpeed();
+      if (nextRound) {
+        this.initSpeed();
+      } else {
+        this.speed.x = 0;
+        this.speed.y = 0;
+      }
     } else if (this.positionX < 0) {
-      console.log("CPU Wins!");
-      scoreTable.addPointRight();
+      var nextRound = scoreTable.addPointRight();
       this.initPos();
-      this.initSpeed();
+      if (nextRound) {
+        this.initSpeed();
+      } else {
+        this.speed.x = 0;
+        this.speed.y = 0;
+      }
     }
   };
 }
@@ -190,10 +198,22 @@ function ScoreCounter() {
   this.addPointLeft = function() {
     this.leftScore += 1;
     this.updateDisplay();
+    if (this.leftScore > 2) {
+      this.victory("Player");
+      return false;
+    } else {
+      return true;
+    }
   };
   this.addPointRight = function() {
     this.rightScore += 1;
     this.updateDisplay();
+    if (this.rightScore > 2) {
+      this.victory("CPU");
+      return false;
+    } else {
+      return true;
+    }
   };
   this.updateDisplay = function() {
     var left = document.getElementById("left-score");
@@ -201,6 +221,9 @@ function ScoreCounter() {
 
     var right = document.getElementById("right-score");
     right.innerHTML = this.rightScore;
+  };
+  this.victory = function(side) {
+    console.log(side + " wins!");
   };
 }
 
