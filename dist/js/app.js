@@ -198,7 +198,7 @@ function ScoreCounter() {
   this.addPointLeft = function() {
     this.leftScore += 1;
     this.updateDisplay();
-    if (this.leftScore > 0) {
+    if (this.leftScore > 1) {
       this.victory("Player");
       return false;
     } else {
@@ -208,7 +208,7 @@ function ScoreCounter() {
   this.addPointRight = function() {
     this.rightScore += 1;
     this.updateDisplay();
-    if (this.rightScore > 0) {
+    if (this.rightScore > 1) {
       this.victory("CPU");
       return false;
     } else {
@@ -227,8 +227,14 @@ function ScoreCounter() {
     playing = false;
   };
   this.render = function() {
-    context.font = "bold 30px sans-serif";
-    context.fillText("Game Over!", 350, 300);
+    context.font = "bold 40px sans-serif";
+    if (this.leftScore > this.rightScore) {
+      context.fillText("You win!", 300, 300);
+    } else {
+      context.fillText("You loose!", 300, 300);
+    }
+    context.font = "15px sans-serif";
+    context.fillText("Press <spacebar> to start a new game.", 275, 325);
   };
   this.resetScore = function() {
     this.leftScore = 0;
@@ -264,16 +270,18 @@ function step() {
 }
 
 function calculate() {
-  leftPaddle.move();
-  cpu.decide();
-  gameBall.move();
+  if (playing) {
+    leftPaddle.move();
+    cpu.decide();
+    gameBall.move();
+  }
 }
 
 function render() {
   context.clearRect(0, 0, canvas.xSize, canvas.ySize);
+  leftPaddle.render();
+  rightPaddle.render();
   if (playing) {
-    leftPaddle.render();
-    rightPaddle.render();
     gameBall.render();
   } else {
     scoreTable.render();
