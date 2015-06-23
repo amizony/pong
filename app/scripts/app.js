@@ -153,10 +153,12 @@ function Ball() {
     // game over
     if (this.positionX > canvas.xSize) {
       console.log("Player Wins!");
+      scoreTable.addPointLeft();
       this.initPos();
       this.initSpeed();
     } else if (this.positionX < 0) {
       console.log("CPU Wins!");
+      scoreTable.addPointRight();
       this.initPos();
       this.initSpeed();
     }
@@ -174,6 +176,30 @@ function AI() {
     } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
       rightPaddle.moveDown(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)));
     }
+  };
+}
+
+
+// -------------------------------------------
+// Score Count
+
+function ScoreCounter() {
+  this.leftScore = 0;
+  this.rightScore = 0;
+  this.addPointLeft = function() {
+    this.leftScore += 1;
+    this.updateDisplay();
+  };
+  this.addPointRight = function() {
+    this.rightScore += 1;
+    this.updateDisplay();
+  };
+  this.updateDisplay = function() {
+    var left = document.getElementById("left-score");
+    left.innerHTML = this.leftScore;
+
+    var right = document.getElementById("right-score");
+    right.innerHTML = this.rightScore;
   };
 }
 
@@ -241,6 +267,9 @@ gameBall.initSpeed();
 
 // ai
 var cpu = new AI();
+
+// score
+var scoreTable = new ScoreCounter();
 
 // fps count
 var frames = 0;
