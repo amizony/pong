@@ -26,7 +26,7 @@ function Paddle(X, Y, maxSpeed) {
   this.render = function() {
     context.beginPath();
     context.rect(this.positionX, this.positionY, this.width, this.length);
-    context.fillStyle = "#000";
+    context.fillStyle = "#eee";
     context.fill();
   };
   this.move = function() {
@@ -69,6 +69,7 @@ function Ball() {
   this.positionX = canvas.xSize / 2;
   this.positionY = canvas.ySize / 2;
   this.radius = 7;
+  this.color = "#fff";
   this.speed = {
     norm: 0,
     tan: 0,
@@ -100,16 +101,26 @@ function Ball() {
     this.speed.norm = Math.sqrt(this.speed.x * this.speed.x + this.speed.y * this.speed.y);
     this.speed.tan = this.speed.y / this.speed.x;
   };
+  this.changeColor = function() {
+    var red = Math.round(Math.random() * 255);
+    var green = Math.round(Math.random() * 255);
+    var blue = Math.round(Math.random() * 255);
+    red = red.toString(16);
+    green = green.toString(16);
+    blue = blue.toString(16);
+    this.color = "#" + red + green + blue;
+  }
   this.render = function() {
     var counterClockWise = true;
     context.beginPath();
     context.arc(this.positionX, this.positionY, this.radius, 0, 2 * Math.PI, counterClockWise);
-    context.fillStyle = "#000";
+    context.fillStyle = this.color;
     context.fill();
   };
   this.bounceSpeedUp = function() {
     this.speed.norm += 0.1;
     this.calculateXYSpeed();
+    this.changeColor();
   };
   this.upBorderBounce = function() {
     this.positionY = -this.positionY;
@@ -260,7 +271,7 @@ function ScoreCounter() {
   this.render = function() {
     context.font = "bold 40px sans-serif";
     if (this.leftScore > this.rightScore) {
-      context.fillText("You win!", 300, 300);
+      context.fillText("You win!", 325, 300);
     } else {
       context.fillText("You loose!", 300, 300);
     }
@@ -310,13 +321,13 @@ function calculate() {
 
 function render() {
   context.clearRect(0, 0, canvas.xSize, canvas.ySize);
-  leftPaddle.render();
-  rightPaddle.render();
   if (playing) {
     gameBall.render();
   } else {
     scoreTable.render();
   }
+  leftPaddle.render();
+  rightPaddle.render();
   frames += 1;
 }
 
