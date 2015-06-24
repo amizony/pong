@@ -24,11 +24,46 @@ h1 {
   height: 50px;
 }
 
+#menu {
+  position: absolute;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  width: 700px;
+  height: 600px;
+  background: #111;
+  //background: radial-gradient(#fff, #888, #111, #111);
+}
+
+.btn {
+  height: 60px;
+  width: 300px;
+  margin: 0 auto;
+  margin-top: 30px;
+  text-align: center;
+  color: white;
+}
+
+.btn:hover {
+  cursor: pointer;
+  color: yellow;
+}
+
+span {
+  vertical-align: middle;
+  line-height: 60px;
+  color: inherit;
+  font-size: 36px;
+}
+
+#bt1 {
+  margin-top: 170px;
+}
+
 canvas {
   display: block;
   border: 1px solid black;
   margin: 0 auto;
-  background-color: black;
 }
 
 #fps-div {
