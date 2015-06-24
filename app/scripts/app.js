@@ -306,53 +306,60 @@ function ScoreCounter(player1, player2) {
 
 
 // -------------------------------------------
-// Engine
+// Engine Object
 
-var animate = window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame    ||
-        window.oRequestAnimationFrame      ||
-        window.msRequestAnimationFrame     ||
-        function(callback) { window.setTimeout(callback, 1000/60) };
+function Engine() {
 
-function step() {
-
-  var calculateNextFrame = new Promise(function(resolve, reject) {
-    resolve(calculate());
-  });
-
-  var renderNextFrame = new Promise(function(resolve, reject) {
-    resolve(render());
-  });
-
-  calculateNextFrame
-    .then(function() { return renderNextFrame; })
-    .then(function() { return animate(step); });
-}
-
-function calculate() {
-  if (gameState == "playing") {
-    leftPaddle.move();
-    cpu.decide();
-    gameBall.move();
-  }
-}
-
-function render() {
-  context.clearRect(0, 0, canvas.xSize, canvas.ySize);
-  if (gameState != "menu") {
-    leftPaddle.render();
-    rightPaddle.render();
-
+  function calculate() {
     if (gameState == "playing") {
-      gameBall.render();
-    } else if (gameState == "gameover") {
-      scoreTable.render();
-    } else if (gameState == "pause") {
-      pauseRender();
+      leftPaddle.move();
+      cpu.decide();
+      gameBall.move();
     }
   }
-  frames += 1;
+
+  function render() {
+    context.clearRect(0, 0, canvas.xSize, canvas.ySize);
+    if (gameState != "menu") {
+      leftPaddle.render();
+      rightPaddle.render();
+
+      if (gameState == "playing") {
+        gameBall.render();
+      } else if (gameState == "gameover") {
+        scoreTable.render();
+      } else if (gameState == "pause") {
+        pauseRender();
+      }
+    }
+    frames += 1;
+  }
+
+  function step() {
+    var calculateNextFrame = new Promise(function(resolve, reject) {
+      resolve(calculate());
+    });
+    var renderNextFrame = new Promise(function(resolve, reject) {
+      resolve(render());
+    });
+    calculateNextFrame
+      .then(function() { return renderNextFrame; })
+      .then(function() { return animate(step); });
+  }
+
+  var animate = window.requestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          window.oRequestAnimationFrame      ||
+          window.msRequestAnimationFrame     ||
+          function(callback) { window.setTimeout(callback, 1000/60) };
+
+  //return {
+    this.run = function() {
+      animate(step);
+    };
+  //};
+
 }
 
 
@@ -391,7 +398,6 @@ var cpu;
 // score
 var scoreTable;
 
-
 // fps count
 var frames = 0;
 var fps = 0;
@@ -400,7 +406,8 @@ var fps = 0;
 var movingUp = false;
 var movingDown = false;
 
-
+// engine
+var engine = new Engine();
 
 // -------------------------------------------
 // Game Menu
@@ -446,7 +453,7 @@ window.setInterval( function() {
   fpsPosition.innerHTML = fps;
 }, 1000);
 
-window.onload = animate(step);
+window.onload = engine.run();
 
 
 
