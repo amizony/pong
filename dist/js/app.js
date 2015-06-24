@@ -25,12 +25,12 @@ function convertColor(rgb) {
 // -------------------------------------------
 // Paddle Object
 
-function Paddle(X, Y, maxSpeed) {
+function Paddle(X, Y) {
   this.positionX = X;
   this.positionY = Y;
   this.length = 100;
   this.width = 6;
-  this.speed = maxSpeed;
+  this.speed = 8;
   this.render = function() {
     var counterClockWise = true;
     context.beginPath();
@@ -77,8 +77,8 @@ function Paddle(X, Y, maxSpeed) {
 // Ball Object
 
 function Ball() {
-  this.positionX = canvas.xSize/2;
-  this.positionY = canvas.ySize/2;
+  this.positionX = -10;
+  this.positionY = -10;
   this.radius = 7;
   this.color = [0, 15, 0];
   this.bounceCount = 0;
@@ -237,11 +237,12 @@ function Ball() {
 // AI
 
 function AI() {
+  this.maxSpeed = 4;
   this.decide = function() {
     if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
-      rightPaddle.moveUp(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY)));
+      rightPaddle.moveUp(Math.min(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY)), this.maxSpeed));
     } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
-      rightPaddle.moveDown(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)));
+      rightPaddle.moveDown(Math.min(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)), this.maxSpeed));
     }
   };
 }
@@ -250,7 +251,9 @@ function AI() {
 // -------------------------------------------
 // Score Count
 
-function ScoreCounter() {
+function ScoreCounter(player1, player2) {
+  this.leftPlayer = player1;
+  this.rightPlayer = player2;
   this.leftScore = 0;
   this.rightScore = 0;
   this.addPointLeft = function() {
@@ -274,25 +277,26 @@ function ScoreCounter() {
     }
   };
   this.updateDisplay = function() {
-    var left = document.getElementById("left-score");
-    left.innerHTML = this.leftScore;
+    var left = document.getElementById("left");
+    left.innerHTML = this.leftPlayer + "<br>" + this.leftScore;
 
-    var right = document.getElementById("right-score");
-    right.innerHTML = this.rightScore;
+    var right = document.getElementById("right");
+    right.innerHTML = this.rightPlayer + "<br>" + this.rightScore;
   };
-  this.victory = function(side) {
-    console.log(side + " wins!");
-    playing = false;
+  this.victory = function() {
+    gameState = "gameover";
   };
   this.render = function() {
     context.font = "bold 40px sans-serif";
     if (this.leftScore > this.rightScore) {
-      context.fillText("You win!", 325, 300);
+      context.fillText(this.leftPlayer + " wins!", 325, 300);
     } else {
-      context.fillText("You loose!", 300, 300);
+      context.fillText(this.rightPlayer + " wins!", 300, 300);
     }
     context.font = "15px sans-serif";
-    context.fillText("Press <spacebar> to start a new game.", 275, 325);
+    context.fillText("Press <spacebar> to start a new game", 275, 325);
+    context.fillText("or <m> to return to menu", 315, 340);
+
   };
   this.resetScore = function() {
     this.leftScore = 0;
@@ -328,7 +332,7 @@ function step() {
 }
 
 function calculate() {
-  if (playing) {
+  if (gameState == "playing") {
     leftPaddle.move();
     cpu.decide();
     gameBall.move();
@@ -337,19 +341,34 @@ function calculate() {
 
 function render() {
   context.clearRect(0, 0, canvas.xSize, canvas.ySize);
-  if (playing) {
-    gameBall.render();
-  } else {
-    scoreTable.render();
+  if (gameState != "menu") {
+    leftPaddle.render();
+    rightPaddle.render();
+
+    if (gameState == "playing") {
+      gameBall.render();
+    } else if (gameState == "gameover") {
+      scoreTable.render();
+    } else if (gameState == "pause") {
+      pauseRender();
+    }
   }
-  leftPaddle.render();
-  rightPaddle.render();
   frames += 1;
 }
 
 
 // -------------------------------------------
 // Game Initialisation
+
+/*
+game state:
+  playing
+  pause
+  menu
+  gameover
+*/
+var gameState = "menu";
+
 
 // canvas
 var canvas = {
@@ -361,21 +380,18 @@ gameCanvas.style.background = "#111";
 var context = gameCanvas.getContext("2d");
 
 // paddles
-var paddleMaxSpeed = 8;
-var leftPaddle = new Paddle(20, 200, paddleMaxSpeed);
-var rightPaddle = new Paddle(canvas.xSize - 20, 200, paddleMaxSpeed/2);
+var leftPaddle;
+var rightPaddle;
 
 // ball
-var gameBall = new Ball();
-gameBall.initPos();
-gameBall.initSpeed();
+var gameBall;
 
 // ai
-var cpu = new AI();
+var cpu;
 
 // score
-var scoreTable = new ScoreCounter();
-var playing = false;
+var scoreTable;
+
 
 // fps count
 var frames = 0;
@@ -385,20 +401,37 @@ var fps = 0;
 var movingUp = false;
 var movingDown = false;
 
-/*
-game state:
-  playing
-  pause
-  menu
-  victory
-*/
-
-
 
 
 // -------------------------------------------
 // Game Menu
 
+function newGame() {
+  leftPaddle = new Paddle(20, 250);
+  leftPaddle.render();
+  rightPaddle = new Paddle(canvas.xSize - 26, 250);
+  rightPaddle.render();
+  gameBall = new Ball();
+  gameBall.initPos();
+  gameBall.initSpeed();
+  cpu = new AI();
+  scoreTable = new ScoreCounter("Player", "CPU");
+  scoreTable.updateDisplay();
+  gameState = "playing";
+  document.getElementById("menu").style.display = "none";
+}
+
+document.getElementById("bt1").addEventListener("click", newGame);
+
+function pauseRender() {
+  context.font = "bold 40px sans-serif";
+  context.fillText("Game paused", 280, 300);
+
+  context.font = "15px sans-serif";
+  context.fillText("Press <spacebar> to continue", 315, 325);
+  context.fillText("or <m> to return to menu", 333, 340);
+
+}
 
 
 
@@ -414,10 +447,14 @@ window.setInterval( function() {
   fpsPosition.innerHTML = fps;
 }, 1000);
 
-// animation
 window.onload = animate(step);
 
-// player inputs
+
+
+
+// -------------------------------------------
+// Keys Inputs
+
     // key pressed
 window.addEventListener("keydown", function(event) {
   // up key
@@ -431,19 +468,20 @@ window.addEventListener("keydown", function(event) {
     movingUp = false;
   }
   // spacebar
-  if ((event.keyCode == 32) && (playing === false)) {
-    playing = true;
-    gameBall.initSpeed();
-    scoreTable.resetScore();
+  if (event.keyCode == 32) {
+    if (gameState == "playing") {
+      gameState = "pause";
+    } else if (gameState == "pause") {
+      gameState = "playing";
+    } else if (gameState == "gameover") {
+      newGame();
+    }
   }
   // m key
   if ((event.keyCode == 77)) {
-    if (playing) {
+    if ((gameState == "pause") || (gameState == "gameover")) {
       document.getElementById("menu").style.display = "initial";
-      playing = !playing;
-    } else {
-      document.getElementById("menu").style.display = "none";
-      playing = !playing;
+      gameState = "menu";
     }
   }
 }, false);
