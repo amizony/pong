@@ -1,5 +1,21 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 // -------------------------------------------
+// Functions Library
+
+function distance(Ax, Ay, Bx, By) {
+  return Math.sqrt((Ax - Bx)*(Ax - Bx) + (Ay - By)*(Ay - By));
+}
+
+function intersect(Ax, Ay, Bx, By, abscissa) {
+  return (By - Ay) / (Bx - Ax) * (abscissa - Ax) + Ay;
+}
+
+function calculateBounceAbscissa(Ax, Ay, tan) {
+  return Math.sqrt((Ax*Ax + Ay*Ay) / (1 + tan*tan));
+}
+
+
+// -------------------------------------------
 // Paddle Object
 
 function Paddle(X, Y, maxSpeed) {
@@ -109,19 +125,35 @@ function Ball() {
     this.bounceSpeedUp();
   };
   this.leftPaddleBounce = function() {
-    this.positionX = Math.max((leftPaddle.positionX + leftPaddle.width) * 2 - this.positionX, leftPaddle.positionX + leftPaddle.width);
+    var impact = {
+      x: leftPaddle.positionX + leftPaddle.width,
+      y: intersect(this.positionX - this.speed.x, this.positionY - this.speed.y, this.positionX, this.positionY, leftPaddle.positionX + leftPaddle.width)
+    };
+    if ((impact.y < leftPaddle.positionY) || (impact.y > leftPaddle.positionY + leftPaddle.length)) {
+      console.log("Outer paddle bounce");
+    }
+    this.speed.tan = 2 * Math.sqrt(3) * (impact.y - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
+    var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
+    this.positionX = impact.x + bounce;
+    this.positionY = impact.y + bounce*this.speed.tan;
     this.speed.x = -this.speed.x;
-    this.calculateVectSpeed();
-    this.speed.tan = 2 * Math.sqrt(3) * (this.positionY - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
-    this.calculateXYSpeed();
+
     this.bounceSpeedUp();
   };
   this.rightPaddleBounce = function() {
-    this.positionX = Math.min(rightPaddle.positionX * 2 - this.positionX, rightPaddle.positionX);
+    var impact = {
+      x: rightPaddle.positionX,
+      y: intersect(this.positionX - this.speed.x, this.positionY - this.speed.y, this.positionX, this.positionY, rightPaddle.positionX)
+    };
+    if ((impact.y < rightPaddle.positionY) || (impact.y > rightPaddle.positionY + rightPaddle.length)) {
+      console.log("Outer paddle bounce");
+    }
+    this.speed.tan = -2 * Math.sqrt(3) * (impact.y - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
+    var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
+    this.positionX = impact.x - bounce;
+    this.positionY = impact.y + bounce*this.speed.tan;
     this.speed.x = -this.speed.x;
-    this.calculateVectSpeed();
-    this.speed.tan = -2 * Math.sqrt(3) * (this.positionY - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
-    this.calculateXYSpeed();
+
     this.bounceSpeedUp();
   };
   this.move = function() {
