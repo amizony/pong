@@ -401,12 +401,9 @@ function ScoreCounter(player1, player2) {
 function Engine() {
 
   function calculate() {
-    if (gameState == "playing") {
-      leftPaddle.move();
-      cpu.decide();
-      rightPaddle.move();
-      gameBall.move();
-    }
+    leftPaddle.move();
+    rightPaddle.move();
+    gameBall.move();
   }
 
   function render() {
@@ -427,15 +424,12 @@ function Engine() {
   }
 
   function step() {
-    var calculateNextFrame = new Promise(function(resolve, reject) {
-      resolve(calculate());
-    });
-    var renderNextFrame = new Promise(function(resolve, reject) {
-      resolve(render());
-    });
-    calculateNextFrame
-      .then(function() { return renderNextFrame; })
-      .then(function() { return animate(step); });
+    if (gameState == "playing") {
+      cpu.decide();
+      calculate();
+    }
+    render();
+    animate(step);
   }
 
   var animate = window.requestAnimationFrame ||
@@ -462,9 +456,7 @@ function Menu() {
   return {
     newGame: function() {
       leftPaddle = new Paddle(20, 250);
-      leftPaddle.render();
       rightPaddle = new Paddle(canvas.xSize - 26, 250);
-      rightPaddle.render();
       gameBall = new Ball();
       gameBall.initPos();
       gameBall.initSpeed();
