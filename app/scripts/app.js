@@ -22,7 +22,7 @@ function convertColor(rgb) {
 
 
 // -------------------------------------------
-// Paddle Object
+// Paddle
 
 function Paddle(X, Y) {
   this.positionX = X;
@@ -73,7 +73,7 @@ function Paddle(X, Y) {
 
 
 // -------------------------------------------
-// Ball Object
+// Ball
 
 function Ball() {
   this.positionX = -10;
@@ -206,9 +206,9 @@ function Ball() {
         }
       }
     }
-    // game over
+
     if (this.positionX > canvas.xSize) {
-      var nextRound = scoreTable.addPointLeft();
+      var nextRound = scoreCounter.addPointLeft();
       this.initPos();
       this.color = [0,15,0];
       if (nextRound) {
@@ -218,7 +218,7 @@ function Ball() {
         this.speed.y = 0;
       }
     } else if (this.positionX < 0) {
-      var nextRound = scoreTable.addPointRight();
+      var nextRound = scoreCounter.addPointRight();
       this.initPos();
       this.color = [0,15,0];
       if (nextRound) {
@@ -259,7 +259,7 @@ function ScoreCounter(player1, player2) {
     this.leftScore += 1;
     this.updateDisplay();
     if (this.leftScore > 1) {
-      this.victory("Player");
+      menu.victory();
       return false;
     } else {
       return true;
@@ -269,7 +269,7 @@ function ScoreCounter(player1, player2) {
     this.rightScore += 1;
     this.updateDisplay();
     if (this.rightScore > 1) {
-      this.victory("CPU");
+      menu.victory();
       return false;
     } else {
       return true;
@@ -282,21 +282,7 @@ function ScoreCounter(player1, player2) {
     var right = document.getElementById("right");
     right.innerHTML = this.rightPlayer + "<br>" + this.rightScore;
   };
-  this.victory = function() {
-    gameState = "gameover";
-  };
-  this.render = function() {
-    context.font = "bold 40px sans-serif";
-    if (this.leftScore > this.rightScore) {
-      context.fillText(this.leftPlayer + " wins!", 325, 300);
-    } else {
-      context.fillText(this.rightPlayer + " wins!", 300, 300);
-    }
-    context.font = "15px sans-serif";
-    context.fillText("Press <spacebar> to start a new game", 275, 325);
-    context.fillText("or <m> to return to menu", 315, 340);
 
-  };
   this.resetScore = function() {
     this.leftScore = 0;
     this.rightScore = 0;
@@ -306,7 +292,7 @@ function ScoreCounter(player1, player2) {
 
 
 // -------------------------------------------
-// Engine Object
+// Engine
 
 function Engine() {
 
@@ -327,9 +313,9 @@ function Engine() {
       if (gameState == "playing") {
         gameBall.render();
       } else if (gameState == "gameover") {
-        scoreTable.render();
+        menu.renderVictory();
       } else if (gameState == "pause") {
-        pauseRender();
+        menu.renderPause();
       }
     }
     frames += 1;
@@ -358,6 +344,51 @@ function Engine() {
     run: function() {
       animate(step);
     }
+  };
+
+}
+
+
+// -------------------------------------------
+// Game Menu
+
+function Menu() {
+  this.newGame = function() {
+    leftPaddle = new Paddle(20, 250);
+    leftPaddle.render();
+    rightPaddle = new Paddle(canvas.xSize - 26, 250);
+    rightPaddle.render();
+    gameBall = new Ball();
+    gameBall.initPos();
+    gameBall.initSpeed();
+    cpu = new AI();
+    scoreCounter = new ScoreCounter("Player", "CPU");
+    scoreCounter.updateDisplay();
+    gameState = "playing";
+    document.getElementById("menu").style.display = "none";
+  }
+  this.renderPause = function() {
+    context.font = "bold 40px sans-serif";
+    context.fillText("Game paused", 280, 300);
+
+    context.font = "15px sans-serif";
+    context.fillText("Press <spacebar> to continue", 315, 325);
+    context.fillText("or <m> to return to menu", 333, 340);
+  };
+  this.victory = function() {
+    gameState = "gameover";
+  };
+  this.renderVictory = function() {
+    context.font = "bold 40px sans-serif";
+    if (scoreCounter.leftScore > scoreCounter.rightScore) {
+      context.fillText(scoreCounter.leftPlayer + " wins!", 325, 300);
+    } else {
+      context.fillText(scoreCounter.rightPlayer + " wins!", 300, 300);
+    }
+    context.font = "15px sans-serif";
+    context.fillText("Press <spacebar> to start a new game", 275, 325);
+    context.fillText("or <m> to return to menu", 315, 340);
+
   };
 
 }
@@ -396,7 +427,7 @@ var gameBall;
 var cpu;
 
 // score
-var scoreTable;
+var scoreCounter;
 
 // fps count
 var frames = 0;
@@ -408,44 +439,9 @@ var movingDown = false;
 
 // engine
 var engine = new Engine();
-
-// -------------------------------------------
-// Game Menu
-
-function newGame() {
-  leftPaddle = new Paddle(20, 250);
-  leftPaddle.render();
-  rightPaddle = new Paddle(canvas.xSize - 26, 250);
-  rightPaddle.render();
-  gameBall = new Ball();
-  gameBall.initPos();
-  gameBall.initSpeed();
-  cpu = new AI();
-  scoreTable = new ScoreCounter("Player", "CPU");
-  scoreTable.updateDisplay();
-  gameState = "playing";
-  document.getElementById("menu").style.display = "none";
-}
-
-document.getElementById("bt1").addEventListener("click", newGame);
-
-function pauseRender() {
-  context.font = "bold 40px sans-serif";
-  context.fillText("Game paused", 280, 300);
-
-  context.font = "15px sans-serif";
-  context.fillText("Press <spacebar> to continue", 315, 325);
-  context.fillText("or <m> to return to menu", 333, 340);
-
-}
+var menu = new Menu();
 
 
-
-
-// -------------------------------------------
-// Main
-
-// fps count
 window.setInterval( function() {
   var fpsPosition = document.getElementById("fps-div");
   fps = "fps: " + frames;
@@ -454,8 +450,6 @@ window.setInterval( function() {
 }, 1000);
 
 window.onload = engine.run();
-
-
 
 
 // -------------------------------------------
@@ -480,7 +474,7 @@ window.addEventListener("keydown", function(event) {
     } else if (gameState == "pause") {
       gameState = "playing";
     } else if (gameState == "gameover") {
-      newGame();
+      menu.newGame();
     }
   }
   // m key
@@ -503,3 +497,9 @@ window.addEventListener("keyup", function(event) {
     movingDown = false;
   }
 }, false);
+
+
+// -------------------------------------------
+// Menu Inputs
+
+document.getElementById("bt1").addEventListener("click", menu.newGame);
