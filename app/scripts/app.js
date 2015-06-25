@@ -13,6 +13,13 @@ function calculateBounceAbscissa(Ax, Ay, tan) {
   return Math.sqrt((Ax*Ax + Ay*Ay) / (1 + tan*tan));
 }
 
+function convertColor(rgb) {
+  var r = rgb[0].toString(16);
+  var g = rgb[1].toString(16);
+  var b = rgb[2].toString(16);
+  return "#" + r + g + b ;
+}
+
 
 // -------------------------------------------
 // Paddle Object
@@ -24,9 +31,12 @@ function Paddle(X, Y, maxSpeed) {
   this.width = 6;
   this.speed = maxSpeed;
   this.render = function() {
+    var counterClockWise = true;
     context.beginPath();
-    context.rect(this.positionX, this.positionY, this.width, this.length);
-    context.fillStyle = "#000";
+    context.rect(this.positionX, this.positionY + this.width/2, this.width, this.length - this.width);
+    context.arc(this.positionX + this.width/2, this.positionY + this.width/2, this.width/2, 0, Math.PI, counterClockWise);
+    context.arc(this.positionX + this.width/2, this.positionY - this.width/2 + this.length, this.width/2, 2 * Math.PI, Math.PI, !counterClockWise);
+    context.fillStyle = "#eee";
     context.fill();
   };
   this.move = function() {
@@ -69,6 +79,8 @@ function Ball() {
   this.positionX = canvas.xSize / 2;
   this.positionY = canvas.ySize / 2;
   this.radius = 7;
+  this.color = [0, 15, 0];
+  this.bounceCount = 0;
   this.speed = {
     norm: 0,
     tan: 0,
@@ -100,16 +112,28 @@ function Ball() {
     this.speed.norm = Math.sqrt(this.speed.x * this.speed.x + this.speed.y * this.speed.y);
     this.speed.tan = this.speed.y / this.speed.x;
   };
+  this.changeColor = function() {
+    this.bounceCount += 1;
+    if (this.bounceCount == 5) {
+      this.bounceCount = 0;
+      if (this.color[0] < 15) {
+        this.color[0] = Math.min(this.color[0] + 3, 15);
+      } else if (this.color[1] > 0) {
+        this.color[1] = Math.max(this.color[1] - 3, 0);
+      }
+    }
+  };
   this.render = function() {
     var counterClockWise = true;
     context.beginPath();
     context.arc(this.positionX, this.positionY, this.radius, 0, 2 * Math.PI, counterClockWise);
-    context.fillStyle = "#000";
+    context.fillStyle = convertColor(this.color);
     context.fill();
   };
   this.bounceSpeedUp = function() {
     this.speed.norm += 0.1;
     this.calculateXYSpeed();
+    this.changeColor();
   };
   this.upBorderBounce = function() {
     this.positionY = -this.positionY;
@@ -186,6 +210,7 @@ function Ball() {
     if (this.positionX > canvas.xSize) {
       var nextRound = scoreTable.addPointLeft();
       this.initPos();
+      this.color = [0,15,0];
       if (nextRound) {
         this.initSpeed();
       } else {
@@ -195,6 +220,7 @@ function Ball() {
     } else if (this.positionX < 0) {
       var nextRound = scoreTable.addPointRight();
       this.initPos();
+      this.color = [0,15,0];
       if (nextRound) {
         this.initSpeed();
       } else {
@@ -260,7 +286,7 @@ function ScoreCounter() {
   this.render = function() {
     context.font = "bold 40px sans-serif";
     if (this.leftScore > this.rightScore) {
-      context.fillText("You win!", 300, 300);
+      context.fillText("You win!", 325, 300);
     } else {
       context.fillText("You loose!", 300, 300);
     }
@@ -310,13 +336,13 @@ function calculate() {
 
 function render() {
   context.clearRect(0, 0, canvas.xSize, canvas.ySize);
-  leftPaddle.render();
-  rightPaddle.render();
   if (playing) {
     gameBall.render();
   } else {
     scoreTable.render();
   }
+  leftPaddle.render();
+  rightPaddle.render();
   frames += 1;
 }
 
