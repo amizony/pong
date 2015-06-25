@@ -25,18 +25,18 @@ function convertColor(rgb) {
 // -------------------------------------------
 // Paddle Object
 
-function Paddle(X, Y, maxSpeed) {
+function Paddle(X, Y) {
   this.positionX = X;
   this.positionY = Y;
   this.length = 100;
   this.width = 6;
-  this.speed = maxSpeed;
+  this.speed = 8;
   this.render = function() {
     var counterClockWise = true;
     context.beginPath();
     context.rect(this.positionX, this.positionY + this.width/2, this.width, this.length - this.width);
     context.arc(this.positionX + this.width/2, this.positionY + this.width/2, this.width/2, 0, Math.PI, counterClockWise);
-    context.arc(this.positionX + this.width/2, this.positionY - this.width/2 + this.length, this.width/2, 2 * Math.PI, Math.PI, !counterClockWise);
+    context.arc(this.positionX + this.width/2, this.positionY - this.width/2 + this.length, this.width/2, 2*Math.PI, Math.PI, !counterClockWise);
     context.fillStyle = "#eee";
     context.fill();
   };
@@ -77,8 +77,8 @@ function Paddle(X, Y, maxSpeed) {
 // Ball Object
 
 function Ball() {
-  this.positionX = canvas.xSize / 2;
-  this.positionY = canvas.ySize / 2;
+  this.positionX = -10;
+  this.positionY = -10;
   this.radius = 7;
   this.color = [0, 15, 0];
   this.bounceCount = 0;
@@ -90,7 +90,7 @@ function Ball() {
   };
   this.initSpeed = function () {
     this.speed.norm = 4;
-    this.speed.tan = Math.min(Math.max(Math.random()*10 - 5, - Math.sqrt(3)), Math.sqrt(3));
+    this.speed.tan = Math.min(Math.max(Math.random() * 10 - 5, - Math.sqrt(3)), Math.sqrt(3));
     this.calculateXYSpeed();
     var randx = Math.random();
     if (randx > 0.5) {
@@ -98,8 +98,8 @@ function Ball() {
     }
   };
   this.initPos = function() {
-    this.positionX = canvas.xSize / 2;
-    this.positionY = Math.random() * (canvas.ySize / 2 -100) + 100;
+    this.positionX = canvas.xSize/2;
+    this.positionY = Math.random() * (canvas.ySize/2 -100) + 100;
   };
   this.calculateXYSpeed = function() {
     if (this.speed.x > 0) {
@@ -127,7 +127,7 @@ function Ball() {
   this.render = function() {
     var counterClockWise = true;
     context.beginPath();
-    context.arc(this.positionX, this.positionY, this.radius, 0, 2 * Math.PI, counterClockWise);
+    context.arc(this.positionX, this.positionY, this.radius, 0, 2*Math.PI, counterClockWise);
     context.fillStyle = convertColor(this.color);
     context.fill();
   };
@@ -143,7 +143,7 @@ function Ball() {
     this.bounceSpeedUp();
   };
   this.downBorderBounce = function() {
-    this.positionY = canvas.ySize * 2 - this.positionY;
+    this.positionY = 2*canvas.ySize - this.positionY;
     this.speed.y = -this.speed.y;
     this.calculateVectSpeed();
     this.bounceSpeedUp();
@@ -156,7 +156,7 @@ function Ball() {
     if ((impact.y < leftPaddle.positionY) || (impact.y > leftPaddle.positionY + leftPaddle.length)) {
       console.log("Outer paddle bounce");
     }
-    this.speed.tan = 2 * Math.sqrt(3) * (impact.y - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
+    this.speed.tan = 2*Math.sqrt(3) * (impact.y - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
     var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
     this.positionX = impact.x + bounce;
     this.positionY = impact.y + bounce*this.speed.tan;
@@ -172,7 +172,7 @@ function Ball() {
     if ((impact.y < rightPaddle.positionY) || (impact.y > rightPaddle.positionY + rightPaddle.length)) {
       console.log("Outer paddle bounce");
     }
-    this.speed.tan = -2 * Math.sqrt(3) * (impact.y - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
+    this.speed.tan = -2*Math.sqrt(3) * (impact.y - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
     var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
     this.positionX = impact.x - bounce;
     this.positionY = impact.y + bounce*this.speed.tan;
@@ -237,11 +237,12 @@ function Ball() {
 // AI
 
 function AI() {
+  this.maxSpeed = 4;
   this.decide = function() {
     if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
-      rightPaddle.moveUp(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY)));
+      rightPaddle.moveUp(Math.min(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY)), this.maxSpeed));
     } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
-      rightPaddle.moveDown(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)));
+      rightPaddle.moveDown(Math.min(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)), this.maxSpeed));
     }
   };
 }
@@ -250,7 +251,9 @@ function AI() {
 // -------------------------------------------
 // Score Count
 
-function ScoreCounter() {
+function ScoreCounter(player1, player2) {
+  this.leftPlayer = player1;
+  this.rightPlayer = player2;
   this.leftScore = 0;
   this.rightScore = 0;
   this.addPointLeft = function() {
@@ -274,25 +277,26 @@ function ScoreCounter() {
     }
   };
   this.updateDisplay = function() {
-    var left = document.getElementById("left-score");
-    left.innerHTML = this.leftScore;
+    var left = document.getElementById("left");
+    left.innerHTML = this.leftPlayer + "<br>" + this.leftScore;
 
-    var right = document.getElementById("right-score");
-    right.innerHTML = this.rightScore;
+    var right = document.getElementById("right");
+    right.innerHTML = this.rightPlayer + "<br>" + this.rightScore;
   };
-  this.victory = function(side) {
-    console.log(side + " wins!");
-    playing = false;
+  this.victory = function() {
+    gameState = "gameover";
   };
   this.render = function() {
     context.font = "bold 40px sans-serif";
     if (this.leftScore > this.rightScore) {
-      context.fillText("You win!", 325, 300);
+      context.fillText(this.leftPlayer + " wins!", 325, 300);
     } else {
-      context.fillText("You loose!", 300, 300);
+      context.fillText(this.rightPlayer + " wins!", 300, 300);
     }
     context.font = "15px sans-serif";
-    context.fillText("Press <spacebar> to start a new game.", 275, 325);
+    context.fillText("Press <spacebar> to start a new game", 275, 325);
+    context.fillText("or <m> to return to menu", 315, 340);
+
   };
   this.resetScore = function() {
     this.leftScore = 0;
@@ -328,7 +332,7 @@ function step() {
 }
 
 function calculate() {
-  if (playing) {
+  if (gameState == "playing") {
     leftPaddle.move();
     cpu.decide();
     gameBall.move();
@@ -337,13 +341,18 @@ function calculate() {
 
 function render() {
   context.clearRect(0, 0, canvas.xSize, canvas.ySize);
-  if (playing) {
-    gameBall.render();
-  } else {
-    scoreTable.render();
+  if (gameState != "menu") {
+    leftPaddle.render();
+    rightPaddle.render();
+
+    if (gameState == "playing") {
+      gameBall.render();
+    } else if (gameState == "gameover") {
+      scoreTable.render();
+    } else if (gameState == "pause") {
+      pauseRender();
+    }
   }
-  leftPaddle.render();
-  rightPaddle.render();
   frames += 1;
 }
 
@@ -351,30 +360,38 @@ function render() {
 // -------------------------------------------
 // Game Initialisation
 
+/*
+game state:
+  playing
+  pause
+  menu
+  gameover
+*/
+var gameState = "menu";
+
+
 // canvas
 var canvas = {
   xSize: 800,
   ySize: 600
 };
 var gameCanvas = document.getElementById("game");
+gameCanvas.style.background = "#111";
 var context = gameCanvas.getContext("2d");
 
 // paddles
-var paddleMaxSpeed = 8;
-var leftPaddle = new Paddle(20, 200, paddleMaxSpeed);
-var rightPaddle = new Paddle(canvas.xSize - 20, 200 ,paddleMaxSpeed / 2);
+var leftPaddle;
+var rightPaddle;
 
 // ball
-var gameBall = new Ball();
-gameBall.initPos();
-gameBall.initSpeed();
+var gameBall;
 
 // ai
-var cpu = new AI();
+var cpu;
 
 // score
-var scoreTable = new ScoreCounter();
-var playing = true;
+var scoreTable;
+
 
 // fps count
 var frames = 0;
@@ -383,6 +400,40 @@ var fps = 0;
 // player inputs
 var movingUp = false;
 var movingDown = false;
+
+
+
+// -------------------------------------------
+// Game Menu
+
+function newGame() {
+  leftPaddle = new Paddle(20, 250);
+  leftPaddle.render();
+  rightPaddle = new Paddle(canvas.xSize - 26, 250);
+  rightPaddle.render();
+  gameBall = new Ball();
+  gameBall.initPos();
+  gameBall.initSpeed();
+  cpu = new AI();
+  scoreTable = new ScoreCounter("Player", "CPU");
+  scoreTable.updateDisplay();
+  gameState = "playing";
+  document.getElementById("menu").style.display = "none";
+}
+
+document.getElementById("bt1").addEventListener("click", newGame);
+
+function pauseRender() {
+  context.font = "bold 40px sans-serif";
+  context.fillText("Game paused", 280, 300);
+
+  context.font = "15px sans-serif";
+  context.fillText("Press <spacebar> to continue", 315, 325);
+  context.fillText("or <m> to return to menu", 333, 340);
+
+}
+
+
 
 
 // -------------------------------------------
@@ -396,32 +447,52 @@ window.setInterval( function() {
   fpsPosition.innerHTML = fps;
 }, 1000);
 
-// animation
 window.onload = animate(step);
 
-// player inputs
+
+
+
+// -------------------------------------------
+// Keys Inputs
+
     // key pressed
 window.addEventListener("keydown", function(event) {
+  // up key
   if (event.keyCode == 38) {
     movingUp = true;
     movingDown = false;
   }
+  // down key
   if (event.keyCode == 40) {
     movingDown = true;
     movingUp = false;
   }
-  if ((event.keyCode == 32) && (playing === false)) {
-    playing = true;
-    gameBall.initSpeed();
-    scoreTable.resetScore();
+  // spacebar
+  if (event.keyCode == 32) {
+    if (gameState == "playing") {
+      gameState = "pause";
+    } else if (gameState == "pause") {
+      gameState = "playing";
+    } else if (gameState == "gameover") {
+      newGame();
+    }
+  }
+  // m key
+  if ((event.keyCode == 77)) {
+    if ((gameState == "pause") || (gameState == "gameover")) {
+      document.getElementById("menu").style.display = "initial";
+      gameState = "menu";
+    }
   }
 }, false);
 
     // key released
 window.addEventListener("keyup", function(event) {
+  // up key
   if (event.keyCode == 38) {
     movingUp = false;
   }
+  // down key
   if (event.keyCode == 40) {
     movingDown = false;
   }
