@@ -13,20 +13,35 @@ function Paddle(X, Y) {
     context.fillStyle = "#000";
     context.fill();
   };
-  this.move = function(event) {
-    if (event.keyCode == 38) {
-      this.positionY -= this.speed;
-      if (this.positionY < 0) {
-        this.positionY = 0;
-      }
+  this.move = function() {
+    if (mu) {
+      this.moveUp();
     }
-    if (event.keyCode == 40) {
-      this.positionY += this.speed;
-      if (this.positionY > 600 - this.length) {
-        this.positionY = 600 - this.length;
-      }
+    if (md) {
+      this.moveDown();
     }
-
+  };
+  this.moveUp = function(px) {
+    if (typeof(px) == 'undefined') {
+      px = this.speed;
+    } else {
+      px = Math.min(px, this.speed);
+    }
+    this.positionY -= px;
+    if (this.positionY < 0) {
+      this.positionY = 0;
+    }
+  };
+  this.moveDown = function(px) {
+    if (typeof(px) == 'undefined') {
+      px = this.speed;
+    } else {
+      px = Math.min(px, this.speed);
+  }
+    this.positionY += this.speed;
+    if (this.positionY > 600 - this.length) {
+      this.positionY = 600 - this.length;
+    }
   };
 }
 
@@ -122,21 +137,39 @@ function Ball() {
     }
 
     // game over
-    if ((this.positionX > 800 + this.radius) || (this.positionX < 0 - this.radius)) {
-      console.log("Victory");
+    if (this.positionX > 800 + this.radius) {
+      console.log("Player Wins!");
+      this.initPos();
+      this.initSpeed();
+    } else if (this.positionX < 0 - this.radius) {
+      console.log("CPU Wins!");
       this.initPos();
       this.initSpeed();
     }
   };
 }
 
+// AI
+
+function AI() {
+  this.act = function() {
+    if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
+      rightPaddle.moveUp(Math.max(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY))), 4);
+    } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
+      rightPaddle.moveDown(Math.max(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY))), 4);
+    }
+  };
+}
 
 
-// functions
+
+// display
 
 function render() {
   context.clearRect(0, 0, 800, 600);
+  leftPaddle.move();
   leftPaddle.render();
+  cpu.act();
   rightPaddle.render();
   gameBall.move();
   gameBall.render();
@@ -164,10 +197,11 @@ function step() {
 
 var leftPaddle = new Paddle(20,200);
 
-var rightPaddle = new Paddle(780,50);
-rightPaddle.length=500;
+var rightPaddle = new Paddle(780,200);
 
 var gameBall = new Ball();
+
+var cpu = new AI();
 
 gameBall.initPos();
 gameBall.initSpeed();
@@ -181,6 +215,28 @@ var context = gameCanvas.getContext("2d");
 
 window.onload = animate(step);
 
-window.addEventListener("keydown", function(event) { leftPaddle.move.apply(leftPaddle, [event]); }, false);
+
+var mu = false;
+var md = false;
+
+window.addEventListener("keydown", function(event) {
+  if (event.keyCode == 38) {
+    mu = true;
+    md = false;
+  }
+  if (event.keyCode == 40) {
+    md = true;
+    mu = false;
+  }
+}, false);
+
+window.addEventListener("keyup", function(event) {
+  if (event.keyCode == 38) {
+    mu = false;
+  }
+  if (event.keyCode == 40) {
+    md = false;
+  }
+}, false);
 
 },{}]},{},[1]);
