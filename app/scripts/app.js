@@ -251,42 +251,45 @@ function AI() {
 // Score Count
 
 function ScoreCounter(player1, player2) {
-  this.leftPlayer = player1;
-  this.rightPlayer = player2;
-  this.leftScore = 0;
-  this.rightScore = 0;
-  this.addPointLeft = function() {
-    this.leftScore += 1;
-    this.updateDisplay();
-    if (this.leftScore > 1) {
-      menu.victory();
-      return false;
-    } else {
-      return true;
-    }
-  };
-  this.addPointRight = function() {
-    this.rightScore += 1;
-    this.updateDisplay();
-    if (this.rightScore > 1) {
-      menu.victory();
-      return false;
-    } else {
-      return true;
-    }
-  };
-  this.updateDisplay = function() {
+  var leftPlayer = player1;
+  var rightPlayer = player2;
+  var leftScore = 0;
+  var rightScore = 0;
+
+  function updateDisplay() {
     var left = document.getElementById("left");
-    left.innerHTML = this.leftPlayer + "<br>" + this.leftScore;
+    left.innerHTML = leftPlayer + "<br>" + leftScore;
 
     var right = document.getElementById("right");
-    right.innerHTML = this.rightPlayer + "<br>" + this.rightScore;
-  };
+    right.innerHTML = rightPlayer + "<br>" + rightScore;
+  }
 
-  this.resetScore = function() {
-    this.leftScore = 0;
-    this.rightScore = 0;
-    this.updateDisplay();
+  return {
+    addPointLeft: function() {
+      leftScore += 1;
+      updateDisplay();
+      if (leftScore > 1) {
+        menu.victory();
+        return false;
+      } else {
+        return true;
+      }
+    },
+    addPointRight: function() {
+      rightScore += 1;
+      updateDisplay();
+      if (rightScore > 1) {
+        menu.victory();
+        return false;
+      } else {
+        return true;
+      }
+    },
+    resetScore: function() {
+      leftScore = 0;
+      rightScore = 0;
+      updateDisplay();
+    }
   };
 }
 
