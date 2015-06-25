@@ -2,8 +2,12 @@
 // -------------------------------------------
 // Functions Library
 
+function quad(n) {
+  return n * n;
+}
+
 function distance(Ax, Ay, Bx, By) {
-  return Math.sqrt((Ax - Bx)*(Ax - Bx) + (Ay - By)*(Ay - By));
+  return Math.sqrt(quad(Ax - Bx) + quad(Ay - By));
 }
 
 function intersect(Ax, Ay, Bx, By, abscissa) {
@@ -11,7 +15,7 @@ function intersect(Ax, Ay, Bx, By, abscissa) {
 }
 
 function calculateBounceAbscissa(Ax, Ay, tan) {
-  return Math.sqrt((Ax*Ax + Ay*Ay) / (1 + tan*tan));
+  return Math.sqrt((quad(Ax) + quad(Ay)) / (1 + quad(tan)));
 }
 
 function convertColor(rgb) {
@@ -21,231 +25,308 @@ function convertColor(rgb) {
   return "#" + r + g + b ;
 }
 
+function randomTangent() {
+  return Math.min(Math.max(Math.random() * 10 - 5, - Math.sqrt(3)), Math.sqrt(3));
+}
+
+
 
 // -------------------------------------------
 // Paddle
 
 function Paddle(X, Y) {
-  this.positionX = X;
-  this.positionY = Y;
-  this.length = 100;
-  this.width = 6;
-  this.speed = 8;
-  this.render = function() {
-    var counterClockWise = true;
-    context.beginPath();
-    context.rect(this.positionX, this.positionY + this.width/2, this.width, this.length - this.width);
-    context.arc(this.positionX + this.width/2, this.positionY + this.width/2, this.width/2, 0, Math.PI, counterClockWise);
-    context.arc(this.positionX + this.width/2, this.positionY - this.width/2 + this.length, this.width/2, 2*Math.PI, Math.PI, !counterClockWise);
-    context.fillStyle = "#eee";
-    context.fill();
+  var position = {
+    x: X,
+    y: Y
   };
-  this.move = function() {
-    if (movingUp) {
-      this.moveUp();
-    }
-    if (movingDown) {
-      this.moveDown();
-    }
-  };
-  this.moveUp = function(px) {
-    if (typeof(px) == 'undefined') {
-      px = this.speed;
+  var length = 100;
+  var width = 6;
+  var speed = 8;
+  var movingUp = false;
+  var movingDown = false;
+
+  function moveUp() {
+    if (typeof(movingUp) == 'number') {
+      movingUp = Math.min(movingUp, speed);
     } else {
-      px = Math.min(px, this.speed);
+      movingUp = speed;
     }
-    this.positionY -= px;
-    if (this.positionY < 0) {
-      this.positionY = 0;
+    position.y -= movingUp;
+    if (position.y < 0) {
+      position.y = 0;
     }
-  };
-  this.moveDown = function(px) {
-    if (typeof(px) == 'undefined') {
-      px = this.speed;
-    } else {
-      px = Math.min(px, this.speed);
   }
-    this.positionY += this.speed;
-    if (this.positionY > canvas.ySize - this.length) {
-      this.positionY = canvas.ySize - this.length;
+
+  function moveDown() {
+    if (typeof(movingDown) == 'number') {
+      movingDown = Math.min(movingDown, speed);
+    } else {
+      movingDown = speed;
+    }
+    position.y += movingDown;
+    if (position.y > canvas.ySize - length) {
+      position.y = canvas.ySize - length;
+    }
+  }
+
+  return {
+    render: function() {
+      var counterClockWise = true;
+      context.beginPath();
+      context.rect(position.x, position.y + width/2, width, length - width);
+      context.arc(position.x + width/2, position.y + width/2, width/2, 0, Math.PI, counterClockWise);
+      context.arc(position.x + width/2, position.y - width/2 + length, width/2, 2*Math.PI, Math.PI, !counterClockWise);
+      context.fillStyle = "#eee";
+      context.fill();
+    },
+
+    getStatus: function() {
+      return {
+        position: position,
+        length: length,
+        width: width,
+        speed: speed
+      };
+    },
+
+    move: function() {
+      if (movingUp) {
+        moveUp();
+      }
+      if (movingDown) {
+        moveDown();
+      }
+    },
+
+    requestMoveUp: function(order) {
+      if (order) {
+        movingUp = order;
+        movingDown = false;
+      } else {
+        movingUp = false;
+      }
+    },
+
+    requestMoveDown: function(order) {
+      if (order) {
+        movingDown = order;
+        movingUp = false;
+      } else {
+        movingDown = false;
+      }
     }
   };
 }
+
 
 
 // -------------------------------------------
 // Ball
 
 function Ball() {
-  this.positionX = -10;
-  this.positionY = -10;
-  this.radius = 7;
-  this.color = [0, 15, 0];
-  this.bounceCount = 0;
-  this.speed = {
+  var position = {
+    x: canvas.xSize/2,
+    y: -10
+  };
+  var radius = 7;
+  var color = [0, 15, 0];
+  var bounceCount = 0;
+  var speed = {
     norm: 0,
     tan: 0,
     x: 0,
     y: 0
   };
-  this.initSpeed = function () {
-    this.speed.norm = 4;
-    this.speed.tan = Math.min(Math.max(Math.random() * 10 - 5, - Math.sqrt(3)), Math.sqrt(3));
-    this.calculateXYSpeed();
-    var randx = Math.random();
-    if (randx > 0.5) {
-      this.speed.x = -this.speed.x
+
+  function calculateXYSpeed() {
+    var sign = (speed.x < 0);
+    speed.x = speed.norm / (Math.sqrt(1 + quad(speed.tan)));
+    if (sign) {
+      speed.x = -speed.x
     }
-  };
-  this.initPos = function() {
-    this.positionX = canvas.xSize/2;
-    this.positionY = Math.random() * (canvas.ySize/2 -100) + 100;
-  };
-  this.calculateXYSpeed = function() {
-    if (this.speed.x > 0) {
-      this.speed.x = this.speed.norm / (Math.sqrt(1 + this.speed.tan * this.speed.tan));
-    } else {
-      this.speed.x = -this.speed.norm / (Math.sqrt(1 + this.speed.tan * this.speed.tan));
-    }
-    this.speed.y = this.speed.x * this.speed.tan;
-  };
-  this.calculateVectSpeed = function() {
-    this.speed.norm = Math.sqrt(this.speed.x * this.speed.x + this.speed.y * this.speed.y);
-    this.speed.tan = this.speed.y / this.speed.x;
-  };
-  this.changeColor = function() {
-    this.bounceCount += 1;
-    if (this.bounceCount == 5) {
-      this.bounceCount = 0;
-      if (this.color[0] < 15) {
-        this.color[0] = Math.min(this.color[0] + 3, 15);
-      } else if (this.color[1] > 0) {
-        this.color[1] = Math.max(this.color[1] - 3, 0);
+    speed.y = speed.x * speed.tan;
+  }
+
+  function calculateVectSpeed() {
+    speed.norm = Math.sqrt(quad(speed.x) + quad(speed.y));
+    speed.tan = speed.y / speed.x;
+  }
+
+  function changeColor() {
+    bounceCount += 1;
+    if (bounceCount == 5) {
+      bounceCount = 0;
+      if (color[0] < 15) {
+        color[0] = Math.min(color[0] + 3, 15);
+      } else if (color[1] > 0) {
+        color[1] = Math.max(color[1] - 3, 0);
       }
     }
-  };
-  this.render = function() {
-    var counterClockWise = true;
-    context.beginPath();
-    context.arc(this.positionX, this.positionY, this.radius, 0, 2*Math.PI, counterClockWise);
-    context.fillStyle = convertColor(this.color);
-    context.fill();
-  };
-  this.bounceSpeedUp = function() {
-    this.speed.norm += 0.1;
-    this.calculateXYSpeed();
-    this.changeColor();
-  };
-  this.upBorderBounce = function() {
-    this.positionY = -this.positionY;
-    this.speed.y = -this.speed.y;
-    this.calculateVectSpeed();
-    this.bounceSpeedUp();
-  };
-  this.downBorderBounce = function() {
-    this.positionY = 2*canvas.ySize - this.positionY;
-    this.speed.y = -this.speed.y;
-    this.calculateVectSpeed();
-    this.bounceSpeedUp();
-  };
-  this.leftPaddleBounce = function() {
+  }
+
+  function bounceSpeedUp() {
+    speed.norm += 0.1;
+    calculateXYSpeed();
+    changeColor();
+  }
+
+  function upBorderBounce() {
+    position.y = -position.y;
+    speed.y = -speed.y;
+    calculateVectSpeed();
+    bounceSpeedUp();
+  }
+
+  function downBorderBounce() {
+    position.y = 2*canvas.ySize - position.y;
+    speed.y = -speed.y;
+    calculateVectSpeed();
+    bounceSpeedUp();
+  }
+
+  function leftPaddleBounce(leftPad) {
     var impact = {
-      x: leftPaddle.positionX + leftPaddle.width,
-      y: intersect(this.positionX - this.speed.x, this.positionY - this.speed.y, this.positionX, this.positionY, leftPaddle.positionX + leftPaddle.width)
+      x: leftPad.position.x + leftPad.width,
+      y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, leftPad.position.x + leftPad.width)
     };
-    if ((impact.y < leftPaddle.positionY) || (impact.y > leftPaddle.positionY + leftPaddle.length)) {
+    if ((impact.y < leftPad.position.y) || (impact.y > leftPad.position.y + leftPad.length)) {
       console.log("Outer paddle bounce");
     }
-    this.speed.tan = 2*Math.sqrt(3) * (impact.y - leftPaddle.positionY) / (leftPaddle.length) - Math.sqrt(3);
-    var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
-    this.positionX = impact.x + bounce;
-    this.positionY = impact.y + bounce*this.speed.tan;
-    this.speed.x = -this.speed.x;
+    speed.tan = 2*Math.sqrt(3) * (impact.y - leftPad.position.y) / (leftPad.length) - Math.sqrt(3);
+    var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
+    position.x = impact.x + bounce;
+    position.y = impact.y + bounce * speed.tan;
+    speed.x = -speed.x;
 
-    this.bounceSpeedUp();
-  };
-  this.rightPaddleBounce = function() {
+    bounceSpeedUp();
+  }
+
+  function rightPaddleBounce(rightPad) {
     var impact = {
-      x: rightPaddle.positionX,
-      y: intersect(this.positionX - this.speed.x, this.positionY - this.speed.y, this.positionX, this.positionY, rightPaddle.positionX)
+      x: rightPad.position.x,
+      y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, rightPad.position.x)
     };
-    if ((impact.y < rightPaddle.positionY) || (impact.y > rightPaddle.positionY + rightPaddle.length)) {
+    if ((impact.y < rightPad.position.y) || (impact.y > rightPad.position.y + rightPad.length)) {
       console.log("Outer paddle bounce");
     }
-    this.speed.tan = -2*Math.sqrt(3) * (impact.y - rightPaddle.positionY) / (rightPaddle.length) + Math.sqrt(3);
-    var bounce = calculateBounceAbscissa(impact.x - this.positionX, impact.y - this.positionY, this.speed.tan);
-    this.positionX = impact.x - bounce;
-    this.positionY = impact.y + bounce*this.speed.tan;
-    this.speed.x = -this.speed.x;
+    speed.tan = -2*Math.sqrt(3) * (impact.y - rightPad.position.y) / (rightPad.length) + Math.sqrt(3);
+    var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
+    position.x = impact.x - bounce;
+    position.y = impact.y + bounce * speed.tan;
+    speed.x = -speed.x;
 
-    this.bounceSpeedUp();
-  };
-  this.move = function() {
-    this.positionX += this.speed.x;
-    this.positionY += this.speed.y;
+    bounceSpeedUp();
+  }
 
-    if (this.positionY < 0) {
-      this.upBorderBounce();
-    }
+  return {
+    initSpeed: function () {
+      speed.norm = 4;
+      speed.tan = randomTangent();
+      calculateXYSpeed();
+      var tossCoin = (Math.random() > 0.5);
+      if (tossCoin) {
+        speed.x = -speed.x
+      }
+    },
 
-    if (this.positionY > canvas.ySize) {
-      this.downBorderBounce();
-    }
+    initPos: function() {
+      position.x = canvas.xSize/2;
+      position.y = Math.random() * (canvas.ySize/2 -100) + 100;
+    },
 
-    if (this.positionX < leftPaddle.positionX + leftPaddle.width) {
-      if ((leftPaddle.positionY < Math.max(this.positionY, this.positionY - this.speed.y)) && (Math.min(this.positionY, this.positionY - this.speed.y) < leftPaddle.positionY + leftPaddle.length)) {
-        if (this.positionX - this.speed.x > leftPaddle.positionX) {
-          this.leftPaddleBounce();
+    render: function() {
+      var counterClockWise = true;
+      context.beginPath();
+      context.arc(position.x, position.y, radius, 0, 2*Math.PI, counterClockWise);
+      context.fillStyle = convertColor(color);
+      context.fill();
+    },
+
+    getStatus: function() {
+      return {
+        position: position,
+        speed: speed,
+        radius: radius
+      };
+    },
+
+    move: function() {
+      var leftPad = leftPaddle.getStatus();
+      var rightPad = rightPaddle.getStatus();
+      position.x += speed.x;
+      position.y += speed.y;
+
+      if (position.y < 0) {
+        upBorderBounce();
+      }
+
+      if (position.y > canvas.ySize) {
+        downBorderBounce();
+      }
+
+      if (position.x < leftPad.position.x + leftPad.width) {
+        if ((leftPad.position.y < Math.max(position.y, position.y - speed.y)) && (Math.min(position.y, position.y - speed.y) < leftPad.position.y + leftPad.length)) {
+          if (position.x - speed.x > leftPad.position.x) {
+            leftPaddleBounce(leftPad);
+          }
         }
       }
-    }
 
-    if (this.positionX > rightPaddle.positionX) {
-      if ((rightPaddle.positionY < Math.max(this.positionY, this.positionY - this.speed.y)) && (Math.min(this.positionY, this.positionY - this.speed.y) < rightPaddle.positionY + rightPaddle.length)) {
-        if (this.positionX - this.speed.x < rightPaddle.positionX + rightPaddle.width) {
-          this.rightPaddleBounce();
+      if (position.x > rightPad.position.x) {
+        if ((rightPad.position.y < Math.max(position.y, position.y - speed.y)) && (Math.min(position.y, position.y - speed.y) < rightPad.position.y + rightPad.length)) {
+          if (position.x - speed.x < rightPad.position.x + rightPad.width) {
+            rightPaddleBounce(rightPad);
+          }
         }
       }
-    }
 
-    if (this.positionX > canvas.xSize) {
-      var nextRound = scoreCounter.addPointLeft();
-      this.initPos();
-      this.color = [0,15,0];
-      if (nextRound) {
-        this.initSpeed();
-      } else {
-        this.speed.x = 0;
-        this.speed.y = 0;
-      }
-    } else if (this.positionX < 0) {
-      var nextRound = scoreCounter.addPointRight();
-      this.initPos();
-      this.color = [0,15,0];
-      if (nextRound) {
-        this.initSpeed();
-      } else {
-        this.speed.x = 0;
-        this.speed.y = 0;
+      if (position.x > canvas.xSize) {
+        var nextRound = scoreCounter.addPointLeft();
+        this.initPos();
+        color = [0,15,0];
+        if (nextRound) {
+          this.initSpeed();
+        } else {
+          speed.x = 0;
+          speed.y = 0;
+        }
+      } else if (position.x < 0) {
+        var nextRound = scoreCounter.addPointRight();
+        this.initPos();
+        color = [0,15,0];
+        if (nextRound) {
+          this.initSpeed();
+        } else {
+          speed.x = 0;
+          speed.y = 0;
+        }
       }
     }
   };
 }
+
 
 
 // -------------------------------------------
 // AI
 
 function AI() {
-  this.maxSpeed = 4;
-  this.decide = function() {
-    if ((rightPaddle.positionY + rightPaddle.length * 1/3) > gameBall.positionY) {
-      rightPaddle.moveUp(Math.min(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 1/3 - gameBall.positionY)), this.maxSpeed));
-    } else if ((rightPaddle.positionY + rightPaddle.length * 2/3) < gameBall.positionY) {
-      rightPaddle.moveDown(Math.min(Math.round(Math.abs(rightPaddle.positionY + rightPaddle.length * 2/3 - gameBall.positionY)), this.maxSpeed));
+  var maxSpeed = 4;
+  return {
+    decide: function() {
+      rightPaddle.requestMoveUp(false);
+      rightPaddle.requestMoveDown(false);
+      var cpuPad = rightPaddle.getStatus();
+      var ball = gameBall.getStatus();
+      if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
+        rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)), maxSpeed));
+      } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
+        rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)), maxSpeed));
+      }
     }
   };
 }
+
 
 
 // -------------------------------------------
@@ -266,6 +347,22 @@ function ScoreCounter(player1, player2) {
   }
 
   return {
+    getLeftPlayer: function() {
+      return leftPlayer;
+    },
+
+    getRightPlayer: function() {
+      return rightPlayer;
+    },
+
+    getLeftScore: function() {
+      return leftScore;
+    },
+
+    getRightScore: function() {
+      return rightScore;
+    },
+
     addPointLeft: function() {
       leftScore += 1;
       updateDisplay();
@@ -276,6 +373,7 @@ function ScoreCounter(player1, player2) {
         return true;
       }
     },
+
     addPointRight: function() {
       rightScore += 1;
       updateDisplay();
@@ -286,6 +384,7 @@ function ScoreCounter(player1, player2) {
         return true;
       }
     },
+
     resetScore: function() {
       leftScore = 0;
       rightScore = 0;
@@ -293,6 +392,7 @@ function ScoreCounter(player1, player2) {
     }
   };
 }
+
 
 
 // -------------------------------------------
@@ -304,6 +404,7 @@ function Engine() {
     if (gameState == "playing") {
       leftPaddle.move();
       cpu.decide();
+      rightPaddle.move();
       gameBall.move();
     }
   }
@@ -349,53 +450,58 @@ function Engine() {
       animate(step);
     }
   };
-
 }
+
 
 
 // -------------------------------------------
 // Game Menu
 
 function Menu() {
-  this.newGame = function() {
-    leftPaddle = new Paddle(20, 250);
-    leftPaddle.render();
-    rightPaddle = new Paddle(canvas.xSize - 26, 250);
-    rightPaddle.render();
-    gameBall = new Ball();
-    gameBall.initPos();
-    gameBall.initSpeed();
-    cpu = new AI();
-    scoreCounter = new ScoreCounter("Player", "CPU");
-    scoreCounter.updateDisplay();
-    gameState = "playing";
-    document.getElementById("menu").style.display = "none";
-  }
-  this.renderPause = function() {
-    context.font = "bold 40px sans-serif";
-    context.fillText("Game paused", 280, 300);
 
-    context.font = "15px sans-serif";
-    context.fillText("Press <spacebar> to continue", 315, 325);
-    context.fillText("or <m> to return to menu", 333, 340);
-  };
-  this.victory = function() {
-    gameState = "gameover";
-  };
-  this.renderVictory = function() {
-    context.font = "bold 40px sans-serif";
-    if (scoreCounter.leftScore > scoreCounter.rightScore) {
-      context.fillText(scoreCounter.leftPlayer + " wins!", 325, 300);
-    } else {
-      context.fillText(scoreCounter.rightPlayer + " wins!", 300, 300);
+  return {
+    newGame: function() {
+      leftPaddle = new Paddle(20, 250);
+      leftPaddle.render();
+      rightPaddle = new Paddle(canvas.xSize - 26, 250);
+      rightPaddle.render();
+      gameBall = new Ball();
+      gameBall.initPos();
+      gameBall.initSpeed();
+      cpu = new AI();
+      scoreCounter = new ScoreCounter("Player", "CPU");
+      scoreCounter.resetScore();
+      gameState = "playing";
+      document.getElementById("menu").style.display = "none";
+    },
+
+    renderPause: function() {
+      context.font = "bold 40px sans-serif";
+      context.fillText("Game paused", 280, 300);
+
+      context.font = "15px sans-serif";
+      context.fillText("Press <spacebar> to continue", 315, 325);
+      context.fillText("or <m> to return to menu", 333, 340);
+    },
+
+    victory: function() {
+      gameState = "gameover";
+    },
+
+    renderVictory: function() {
+      context.font = "bold 40px sans-serif";
+      if (scoreCounter.getLeftScore() > scoreCounter.getRightScore()) {
+        context.fillText(scoreCounter.getLeftPlayer() + " wins!", 300, 300);
+      } else {
+        context.fillText(scoreCounter.getRightPlayer() + " wins!", 300, 300);
+      }
+      context.font = "15px sans-serif";
+      context.fillText("Press <spacebar> to start a new game", 275, 325);
+      context.fillText("or <m> to return to menu", 315, 340);
     }
-    context.font = "15px sans-serif";
-    context.fillText("Press <spacebar> to start a new game", 275, 325);
-    context.fillText("or <m> to return to menu", 315, 340);
-
   };
-
 }
+
 
 
 // -------------------------------------------
@@ -409,7 +515,6 @@ game state:
   gameover
 */
 var gameState = "menu";
-
 
 // canvas
 var canvas = {
@@ -437,10 +542,6 @@ var scoreCounter;
 var frames = 0;
 var fps = 0;
 
-// player inputs
-var movingUp = false;
-var movingDown = false;
-
 // engine
 var engine = new Engine();
 var menu = new Menu();
@@ -456,6 +557,7 @@ window.setInterval( function() {
 window.onload = engine.run();
 
 
+
 // -------------------------------------------
 // Keys Inputs
 
@@ -463,13 +565,11 @@ window.onload = engine.run();
 window.addEventListener("keydown", function(event) {
   // up key
   if (event.keyCode == 38) {
-    movingUp = true;
-    movingDown = false;
+    leftPaddle.requestMoveUp(true);
   }
   // down key
   if (event.keyCode == 40) {
-    movingDown = true;
-    movingUp = false;
+    leftPaddle.requestMoveDown(true);
   }
   // spacebar
   if (event.keyCode == 32) {
@@ -494,13 +594,14 @@ window.addEventListener("keydown", function(event) {
 window.addEventListener("keyup", function(event) {
   // up key
   if (event.keyCode == 38) {
-    movingUp = false;
+    leftPaddle.requestMoveUp(false);
   }
   // down key
   if (event.keyCode == 40) {
-    movingDown = false;
+    leftPaddle.requestMoveDown(false);
   }
 }, false);
+
 
 
 // -------------------------------------------
