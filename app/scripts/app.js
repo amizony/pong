@@ -582,7 +582,7 @@ function Menu() {
       case "2players":
         leftPlayer = "Player 1";
         rightPlayer = "Player 2";
-        cpu = none;
+        cpu = null;
         break;
       case "easy":
         leftPlayer = "Player";
@@ -634,7 +634,8 @@ function Menu() {
       launchGame();
     },
     twoPlayers: function() {
-      console.log("Not yet implemented.");
+      setGame("2players");
+      launchGame();
     },
     activateBonus: function() {
       console.log("Not yet implemented.");
@@ -729,14 +730,24 @@ window.onload = engine.run();
 
     // key pressed
 window.addEventListener("keydown", function(event) {
-  // up key
-  if (event.keyCode == 38) {
+  // e key (player 1)
+  if (event.keyCode == 69) {
     leftPaddle.requestMoveUp(true);
   }
-  // down key
-  if (event.keyCode == 40) {
+  // d key (player 1)
+  if (event.keyCode == 68) {
     leftPaddle.requestMoveDown(true);
   }
+
+  // p key (player 2)
+  if ((event.keyCode == 80) && !cpu) {
+    rightPaddle.requestMoveUp(true);
+  }
+  // l key (player 2)
+  if ((event.keyCode == 76) && !cpu) {
+    rightPaddle.requestMoveDown(true);
+  }
+
   // spacebar
   if (event.keyCode == 32) {
     if (gameState == "playing") {
@@ -757,13 +768,22 @@ window.addEventListener("keydown", function(event) {
 
     // key released
 window.addEventListener("keyup", function(event) {
-  // up key
-  if (event.keyCode == 38) {
+  // e key (player 2)
+  if (event.keyCode == 69) {
     leftPaddle.requestMoveUp(false);
   }
-  // down key
-  if (event.keyCode == 40) {
+  // d key (player 2)
+  if (event.keyCode == 68) {
     leftPaddle.requestMoveDown(false);
+  }
+
+  // p key (player 2)
+  if ((event.keyCode == 80) && !cpu) {
+    rightPaddle.requestMoveUp(false);
+  }
+  // l key (player 2)
+  if ((event.keyCode == 76) && !cpu) {
+    rightPaddle.requestMoveDown(false);
   }
 }, false);
 
