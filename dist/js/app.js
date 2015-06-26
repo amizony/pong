@@ -347,27 +347,19 @@ function ScoreCounter(player1, player2) {
   }
 
   return {
-    getLeftPlayer: function() {
-      return leftPlayer;
+    getLeftTable: function() {
+      return [leftPlayer, leftScore];
     },
 
-    getRightPlayer: function() {
-      return rightPlayer;
-    },
-
-    getLeftScore: function() {
-      return leftScore;
-    },
-
-    getRightScore: function() {
-      return rightScore;
+    getRightTable: function() {
+      return [rightPlayer, rightScore];
     },
 
     addPointLeft: function() {
       leftScore += 1;
       updateDisplay();
       if (leftScore > 1) {
-        menu.victory();
+        menu.gameover(leftPlayer);
         return false;
       } else {
         return true;
@@ -378,7 +370,7 @@ function ScoreCounter(player1, player2) {
       rightScore += 1;
       updateDisplay();
       if (rightScore > 1) {
-        menu.victory();
+        menu.gameover(rightPlayer);
         return false;
       } else {
         return true;
@@ -414,10 +406,6 @@ function Engine() {
 
       if (gameState == "playing") {
         gameBall.render();
-      } else if (gameState == "gameover") {
-        menu.renderVictory();
-      } else if (gameState == "pause") {
-        menu.renderPause();
       }
     }
     frames += 1;
@@ -425,7 +413,9 @@ function Engine() {
 
   function step() {
     if (gameState == "playing") {
-      cpu.decide();
+      if (cpu) {
+        cpu.decide();
+      }
       calculate();
     }
     render();
@@ -453,44 +443,95 @@ function Engine() {
 
 function Menu() {
 
+  var leftPlayer;
+  var rightPlayer;
+
+  function setGame(opponent) {
+    switch (opponent) {
+      case "2players":
+        leftPlayer = "Player 1";
+        rightPlayer = "Player 2";
+        cpu = none;
+        break;
+      case "easy":
+        leftPlayer = "Player";
+        rightPlayer = "Slow CPU";
+        cpu = new AI(opponent);
+        break;
+      case "medium":
+        leftPlayer = "Player";
+        rightPlayer = "CPU";
+        cpu = new AI(opponent);
+        break;
+      case "hard":
+        leftPlayer = "Player";
+        rightPlayer = "Smart CPU";
+        cpu = new AI(opponent);
+        break;
+    }
+  }
+
+  function launchGame() {
+    leftPaddle = new Paddle(20, 250);
+    rightPaddle = new Paddle(canvas.xSize - 26, 250);
+    gameBall = new Ball();
+    gameBall.initPos();
+    gameBall.initSpeed();
+    scoreCounter = new ScoreCounter(leftPlayer, rightPlayer);
+    scoreCounter.resetScore();
+    gameState = "playing";
+    document.getElementById("main").style.display = "none";
+    document.getElementById("victory").style.display = "none";
+    document.getElementById("ailist").style.display = "none";
+  }
+
+
   return {
-    newGame: function() {
-      leftPaddle = new Paddle(20, 250);
-      rightPaddle = new Paddle(canvas.xSize - 26, 250);
-      gameBall = new Ball();
-      gameBall.initPos();
-      gameBall.initSpeed();
-      cpu = new AI();
-      scoreCounter = new ScoreCounter("Player", "CPU");
-      scoreCounter.resetScore();
+    displayAI: function() {
+      document.getElementById("main").style.display = "none";
+      document.getElementById("ailist").style.display = "initial";
+    },
+    easyAI: function() {
+      setGame("easy");
+      launchGame();
+    },
+    mediumAI: function() {
+      setGame("medium");
+
+    },
+    hardAI: function() {
+      console.log("Not yet implemented.");
+    },
+    twoPlayers: function() {
+      console.log("Not yet implemented.");
+    },
+    activateBonus: function() {
+      console.log("Not yet implemented.");
+    },
+    pause: function() {
+      document.getElementById("pause").style.display = "initial";
+      gameState = "pause";
+    },
+    resumeGame: function () {
+      document.getElementById("pause").style.display = "none";
       gameState = "playing";
-      document.getElementById("menu").style.display = "none";
     },
-
-    renderPause: function() {
-      context.font = "bold 40px sans-serif";
-      context.fillText("Game paused", 280, 300);
-
-      context.font = "15px sans-serif";
-      context.fillText("Press <spacebar> to continue", 315, 325);
-      context.fillText("or <m> to return to menu", 333, 340);
+    returnMenu: function() {
+      document.getElementById("pause").style.display = "none";
+      document.getElementById("victory").style.display = "none";
+      document.getElementById("main").style.display = "initial";
+      gameState = "menu";
     },
-
-    victory: function() {
+    gameover: function(winner) {
+      document.getElementById("victory").style.display = "initial";
+      document.getElementById("winner").innerHTML = "<span> " + winner + " wins! </span>";
       gameState = "gameover";
     },
-
-    renderVictory: function() {
-      context.font = "bold 40px sans-serif";
-      if (scoreCounter.getLeftScore() > scoreCounter.getRightScore()) {
-        context.fillText(scoreCounter.getLeftPlayer() + " wins!", 300, 300);
-      } else {
-        context.fillText(scoreCounter.getRightPlayer() + " wins!", 300, 300);
-      }
-      context.font = "15px sans-serif";
-      context.fillText("Press <spacebar> to start a new game", 275, 325);
-      context.fillText("or <m> to return to menu", 315, 340);
+    newGame: function() {
+      launchGame();
     }
+
+
   };
 }
 
@@ -514,7 +555,6 @@ var canvas = {
   ySize: 600
 };
 var gameCanvas = document.getElementById("game");
-gameCanvas.style.background = "#111";
 var context = gameCanvas.getContext("2d");
 
 // paddles
@@ -537,6 +577,10 @@ var fps = 0;
 // engine
 var engine = new Engine();
 var menu = new Menu();
+
+document.getElementById("ailist").style.display = "none";
+document.getElementById("pause").style.display = "none";
+document.getElementById("victory").style.display = "none";
 
 
 window.setInterval( function() {
@@ -566,9 +610,9 @@ window.addEventListener("keydown", function(event) {
   // spacebar
   if (event.keyCode == 32) {
     if (gameState == "playing") {
-      gameState = "pause";
+      menu.pause();
     } else if (gameState == "pause") {
-      gameState = "playing";
+      menu.resumeGame();
     } else if (gameState == "gameover") {
       menu.newGame();
     }
@@ -576,8 +620,7 @@ window.addEventListener("keydown", function(event) {
   // m key
   if ((event.keyCode == 77)) {
     if ((gameState == "pause") || (gameState == "gameover")) {
-      document.getElementById("menu").style.display = "initial";
-      gameState = "menu";
+      menu.returnMenu();
     }
   }
 }, false);
@@ -599,6 +642,15 @@ window.addEventListener("keyup", function(event) {
 // -------------------------------------------
 // Menu Inputs
 
-document.getElementById("bt1").addEventListener("click", menu.newGame);
+document.getElementById("displayai").addEventListener("click", menu.displayAI);
+document.getElementById("ai1").addEventListener("click", menu.easyAI);
+document.getElementById("ai2").addEventListener("click", menu.mediumAI);
+document.getElementById("ai3").addEventListener("click", menu.hardAI);
+document.getElementById("2p").addEventListener("click", menu.twoPlayers);
+document.getElementById("bonus").addEventListener("click", menu.activateBonus);
+document.getElementById("continue").addEventListener("click", menu.resumeGame);
+document.getElementById("retmenu1").addEventListener("click", menu.returnMenu);
+document.getElementById("retmenu2").addEventListener("click", menu.returnMenu);
+document.getElementById("newgame").addEventListener("click", menu.newGame);
 
 },{}]},{},[1]);
