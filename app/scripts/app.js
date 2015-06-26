@@ -30,6 +30,100 @@ function randomTangent() {
 
 
 
+
+
+
+
+function Collider() {
+  function upCollosion() {
+    var ball = gameBall.getStatus();
+    return (ball.position.y < 0);
+  }
+
+  function downCollision() {
+    var ball = gameBall.getStatus();
+    return (ball.position.y > canvas.ySize);
+  }
+
+  function leftPaddleCollision() {
+    var ball = gameBall.getStatus();
+    var leftPad = leftPaddle.getStatus();
+    var collide = false;
+    if (ball.position.x < leftPad.position.x + leftPad.width) {
+      if ((leftPad.position.y < Math.max(ball.position.y, ball.position.y - ball.speed.y)) && (Math.min(ball.position.y, ball.position.y - ball.speed.y) < leftPad.position.y + leftPad.length)) {
+        if (ball.position.x - ball.speed.x > leftPad.position.x) {
+          collide = true;
+        }
+      }
+    }
+    return collide;
+  }
+
+  function rightPaddleCollision() {
+    var ball = gameBall.getStatus();
+    var rightPad = rightPaddle.getStatus();
+    var collide = false;
+    if (ball.position.x > rightPad.position.x) {
+      if ((rightPad.position.y < Math.max(ball.position.y, ball.position.y - ball.speed.y)) && (Math.min(ball.position.y, ball.position.y - ball.speed.y) < rightPad.position.y + rightPad.length)) {
+        if (ball.position.x - ball.speed.x < rightPad.position.x + rightPad.width) {
+          collide = true;
+        }
+      }
+    }
+    return collide;
+  }
+
+  function leftOffLimit() {
+    var ball = gameBall.getStatus();
+    return (ball.position.x < 0);
+  }
+
+  function rightOffLimit() {
+    var ball = gameBall.getStatus();
+    return (ball.position.x > canvas.xSize);
+  }
+
+  return {
+    resolve: function() {
+      if (upCollosion()) {
+        gameBall.upBorderBounce();
+      }
+
+      if (downCollision()) {
+        gameBall.downBorderBounce();
+      }
+
+      if (leftPaddleCollision()) {
+        gameBall.leftPaddleBounce();
+      }
+
+      if (rightPaddleCollision()) {
+        gameBall.rightPaddleBounce();
+      }
+
+      if (rightOffLimit()) {
+        var nextRound = scoreCounter.addPointLeft();
+        gameBall.initPos();
+        if (nextRound) {
+          gameBall.initSpeed();
+        } else {
+          gameBall.freeze();
+        }
+      }
+
+      if (leftOffLimit()) {
+        var nextRound = scoreCounter.addPointRight();
+        gameBall.initPos();
+        if (nextRound) {
+          gameBall.initSpeed();
+        } else {
+          gameBall.freeze();
+        }
+      }
+    }
+  }
+}
+
 // -------------------------------------------
 // Paddle
 
@@ -45,7 +139,7 @@ function Paddle(X, Y) {
   var movingDown = false;
 
   function moveUp() {
-    if (typeof(movingUp) == 'number') {
+    if (typeof(movingUp) == "number") {
       movingUp = Math.min(movingUp, speed);
     } else {
       movingUp = speed;
@@ -57,7 +151,7 @@ function Paddle(X, Y) {
   }
 
   function moveDown() {
-    if (typeof(movingDown) == 'number') {
+    if (typeof(movingDown) == "number") {
       movingDown = Math.min(movingDown, speed);
     } else {
       movingDown = speed;
@@ -169,55 +263,12 @@ function Ball() {
     changeColor();
   }
 
-  function upBorderBounce() {
-    position.y = -position.y;
-    speed.y = -speed.y;
-    calculateVectSpeed();
-    bounceSpeedUp();
-  }
-
-  function downBorderBounce() {
-    position.y = 2*canvas.ySize - position.y;
-    speed.y = -speed.y;
-    calculateVectSpeed();
-    bounceSpeedUp();
-  }
-
-  function leftPaddleBounce(leftPad) {
-    var impact = {
-      x: leftPad.position.x + leftPad.width,
-      y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, leftPad.position.x + leftPad.width)
-    };
-    if ((impact.y < leftPad.position.y) || (impact.y > leftPad.position.y + leftPad.length)) {
-      console.log("Outer paddle bounce");
-    }
-    speed.tan = 2*Math.sqrt(3) * (impact.y - leftPad.position.y) / (leftPad.length) - Math.sqrt(3);
-    var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
-    position.x = impact.x + bounce;
-    position.y = impact.y + bounce * speed.tan;
-    speed.x = -speed.x;
-
-    bounceSpeedUp();
-  }
-
-  function rightPaddleBounce(rightPad) {
-    var impact = {
-      x: rightPad.position.x,
-      y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, rightPad.position.x)
-    };
-    if ((impact.y < rightPad.position.y) || (impact.y > rightPad.position.y + rightPad.length)) {
-      console.log("Outer paddle bounce");
-    }
-    speed.tan = -2*Math.sqrt(3) * (impact.y - rightPad.position.y) / (rightPad.length) + Math.sqrt(3);
-    var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
-    position.x = impact.x - bounce;
-    position.y = impact.y + bounce * speed.tan;
-    speed.x = -speed.x;
-
-    bounceSpeedUp();
-  }
-
   return {
+    freeze: function() {
+      speed.x = 0;
+      speed.y = 0;
+    },
+
     initSpeed: function () {
       speed.norm = 4;
       speed.tan = randomTangent();
@@ -226,6 +277,7 @@ function Ball() {
       if (tossCoin) {
         speed.x = -speed.x
       }
+      color = [0,15,0];
     },
 
     initPos: function() {
@@ -250,57 +302,60 @@ function Ball() {
     },
 
     move: function() {
-      var leftPad = leftPaddle.getStatus();
-      var rightPad = rightPaddle.getStatus();
       position.x += speed.x;
       position.y += speed.y;
+    },
 
-      if (position.y < 0) {
-        upBorderBounce();
-      }
+    upBorderBounce: function() {
+      position.y = -position.y;
+      speed.y = -speed.y;
+      calculateVectSpeed();
+      bounceSpeedUp();
+    },
 
-      if (position.y > canvas.ySize) {
-        downBorderBounce();
-      }
+    downBorderBounce: function() {
+      position.y = 2*canvas.ySize - position.y;
+      speed.y = -speed.y;
+      calculateVectSpeed();
+      bounceSpeedUp();
+    },
 
-      if (position.x < leftPad.position.x + leftPad.width) {
-        if ((leftPad.position.y < Math.max(position.y, position.y - speed.y)) && (Math.min(position.y, position.y - speed.y) < leftPad.position.y + leftPad.length)) {
-          if (position.x - speed.x > leftPad.position.x) {
-            leftPaddleBounce(leftPad);
-          }
-        }
+    leftPaddleBounce: function() {
+      var leftPad = leftPaddle.getStatus();
+      var impact = {
+        x: leftPad.position.x + leftPad.width,
+        y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, leftPad.position.x + leftPad.width)
+      };
+      if ((impact.y < leftPad.position.y) || (impact.y > leftPad.position.y + leftPad.length)) {
+        console.log("Outer paddle bounce");
       }
+      speed.tan = 2*Math.sqrt(3) * (impact.y - leftPad.position.y) / (leftPad.length) - Math.sqrt(3);
+      var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
+      position.x = impact.x + bounce;
+      position.y = impact.y + bounce * speed.tan;
+      speed.x = -speed.x;
 
-      if (position.x > rightPad.position.x) {
-        if ((rightPad.position.y < Math.max(position.y, position.y - speed.y)) && (Math.min(position.y, position.y - speed.y) < rightPad.position.y + rightPad.length)) {
-          if (position.x - speed.x < rightPad.position.x + rightPad.width) {
-            rightPaddleBounce(rightPad);
-          }
-        }
-      }
+      bounceSpeedUp();
+    },
 
-      if (position.x > canvas.xSize) {
-        var nextRound = scoreCounter.addPointLeft();
-        this.initPos();
-        color = [0,15,0];
-        if (nextRound) {
-          this.initSpeed();
-        } else {
-          speed.x = 0;
-          speed.y = 0;
-        }
-      } else if (position.x < 0) {
-        var nextRound = scoreCounter.addPointRight();
-        this.initPos();
-        color = [0,15,0];
-        if (nextRound) {
-          this.initSpeed();
-        } else {
-          speed.x = 0;
-          speed.y = 0;
-        }
+    rightPaddleBounce: function() {
+      var rightPad = rightPaddle.getStatus();
+      var impact = {
+        x: rightPad.position.x,
+        y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, rightPad.position.x)
+      };
+      if ((impact.y < rightPad.position.y) || (impact.y > rightPad.position.y + rightPad.length)) {
+        console.log("Outer paddle bounce");
       }
+      speed.tan = -2*Math.sqrt(3) * (impact.y - rightPad.position.y) / (rightPad.length) + Math.sqrt(3);
+      var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
+      position.x = impact.x - bounce;
+      position.y = impact.y + bounce * speed.tan;
+      speed.x = -speed.x;
+
+      bounceSpeedUp();
     }
+
   };
 }
 
@@ -400,6 +455,7 @@ function Engine() {
     leftPaddle.move();
     rightPaddle.move();
     gameBall.move();
+    collider.resolve();
   }
 
   function render() {
@@ -489,7 +545,6 @@ function Menu() {
     document.getElementById("ailist").style.display = "none";
   }
 
-
   return {
     displayAI: function() {
       document.getElementById("main").style.display = "none";
@@ -534,8 +589,6 @@ function Menu() {
     newGame: function() {
       launchGame();
     }
-
-
   };
 }
 
@@ -580,6 +633,7 @@ var fps = 0;
 
 // engine
 var engine = new Engine();
+var collider = new Collider();
 var menu = new Menu();
 
 document.getElementById("ailist").style.display = "none";
