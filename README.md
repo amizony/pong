@@ -1,18 +1,18 @@
 Pong
 =================
 
-A replica of the pong game built during my apprenticeship at Bloc.io.
+A replica of the pong game built during my apprenticeship at [Bloc.io](www.bloc.io).
 
 ## Technologies
 
-HTML5 application built with Grunt and using only javascript.
+HTML5 application built with [Grunt](gruntjs.com) and using only javascript.
 
 ## Features
 
 * Pong game
-* Play versus an AI
-* Counting points
-* Ball speed up
+* Different level of AI
+* Two players mode
+* Temporary bonuses (Comming soon)
 
 ## Quick start
 
