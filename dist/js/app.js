@@ -310,8 +310,13 @@ function Ball() {
 // -------------------------------------------
 // AI
 
-function AI() {
-  var maxSpeed = 4;
+function AI(difficulty) {
+  var maxSpeed = 8;
+
+  if (difficulty == "easy") {
+    maxSpeed = 4;
+  }
+
   return {
     decide: function() {
       rightPaddle.requestMoveUp(false);
@@ -497,7 +502,7 @@ function Menu() {
     },
     mediumAI: function() {
       setGame("medium");
-
+      launchGame();
     },
     hardAI: function() {
       console.log("Not yet implemented.");
