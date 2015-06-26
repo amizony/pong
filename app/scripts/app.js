@@ -365,25 +365,96 @@ function Ball() {
 // AI
 
 function AI(difficulty) {
-  var maxSpeed = 8;
+  var easyMaxSpeed = 4;
 
   if (difficulty == "easy") {
-    maxSpeed = 4;
-  }
-
-  return {
-    decide: function() {
-      rightPaddle.requestMoveUp(false);
-      rightPaddle.requestMoveDown(false);
-      var cpuPad = rightPaddle.getStatus();
-      var ball = gameBall.getStatus();
-      if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
-        rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)), maxSpeed));
-      } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
-        rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)), maxSpeed));
+    return {
+      decide: function() {
+        rightPaddle.requestMoveUp(false);
+        rightPaddle.requestMoveDown(false);
+        var cpuPad = rightPaddle.getStatus();
+        var ball = gameBall.getStatus();
+        if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
+          rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)), easyMaxSpeed));
+        } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
+          rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)), easyMaxSpeed));
+        }
       }
-    }
-  };
+    };
+  } else if (difficulty == "medium") {
+    return {
+      decide: function() {
+        rightPaddle.requestMoveUp(false);
+        rightPaddle.requestMoveDown(false);
+        var cpuPad = rightPaddle.getStatus();
+        var ball = gameBall.getStatus();
+        if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
+          rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)));
+        } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
+          rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)));
+        }
+      }
+    };
+  } else if (difficulty == "hard") {
+    var randPos = 0;
+    return {
+      decide: function() {
+        var cpuPad = rightPaddle.getStatus();
+        var ball = gameBall.getStatus();
+
+        if (ball.speed.x < 0) {
+          aim = canvas.ySize/2 - cpuPad.length/2;
+          randPos = 0;
+        } else {
+          this.reflect();
+        }
+
+        this.goto(aim);
+      },
+
+      goto: function(aim) {
+        var cpuPad = rightPaddle.getStatus();
+        var epsilon = 1;
+        rightPaddle.requestMoveUp(false);
+        rightPaddle.requestMoveDown(false);
+
+        if (cpuPad.position.y > aim + epsilon) {
+          rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y-aim)));
+        } else if (cpuPad.position.y < aim - epsilon){
+          rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y-aim)));
+        }
+      },
+
+      reflect: function() {
+        cpuPad = rightPaddle.getStatus();
+        ball = gameBall.getStatus();
+        var impact = this.findImpact();
+        aim = impact - cpuPad.length/2;
+
+        if ((ball.position.x > cpuPad.position.x - ball.speed.x * 10) && randPos == 0) {
+          randPos = Math.random() * cpuPad.length - cpuPad.length/2;
+        }
+        aim += randPos;
+      },
+
+      findImpact: function() {
+        cpuPad = rightPaddle.getStatus();
+        ball = gameBall.getStatus();
+
+        var impact = intersect(ball.position.x - ball.speed.x, ball.position.y - ball.speed.y, ball.position.x, ball.position.y, cpuPad.position.x);
+
+        while ((impact < 0 ) || (impact > canvas.ySize)) {
+          if (impact < 0) {
+            impact = -impact;
+          }
+          if (impact > canvas.ySize) {
+            impact = canvas.ySize*2 - impact;
+          }
+        }
+        return impact;
+      }
+    };
+  }
 }
 
 
@@ -559,7 +630,8 @@ function Menu() {
       launchGame();
     },
     hardAI: function() {
-      console.log("Not yet implemented.");
+      setGame("hard");
+      launchGame();
     },
     twoPlayers: function() {
       console.log("Not yet implemented.");
