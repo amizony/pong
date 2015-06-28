@@ -24,3 +24,13 @@ Install
 2. install dependencies: `npm install`.
 
 Run `grunt` to launch a local server you can then access on port 3000 of localhost.
+
+## Game Controls
+
+Player 1:
+* `e` for moving up
+* `d` for moving down
+
+Player 2:
+* `p` for moving up
+* `l` for moving down
