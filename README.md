@@ -3,6 +3,8 @@ Pong
 
 A replica of the pong game built during my apprenticeship at [Bloc.io](www.bloc.io).
 
+Demo is available on heroku: [Pong](http://my-little-pong-game.herokuapp.com/).
+
 ## Technologies
 
 HTML5 application built with [Grunt](gruntjs.com) and using only javascript.
