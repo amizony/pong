@@ -31,6 +31,9 @@ function randomTangent() {
 
 
 
+// -------------------------------------------
+// Collider
+
 function Collider() {
   function upCollosion() {
     var ball = gameBall.getStatus();
@@ -132,16 +135,16 @@ function Paddle(X, Y) {
     y: Y
   };
   var length = 100;
-  var width = 4;
-  var speed = 8;
+  var width = 6;
+  var maxSpeed = 8;
   var movingUp = false;
   var movingDown = false;
 
   function moveUp() {
     if (typeof(movingUp) == "number") {
-      movingUp = Math.min(movingUp, speed);
+      movingUp = Math.min(movingUp, maxSpeed);
     } else {
-      movingUp = speed;
+      movingUp = maxSpeed;
     }
     position.y -= movingUp;
     if (position.y < 0) {
@@ -151,9 +154,9 @@ function Paddle(X, Y) {
 
   function moveDown() {
     if (typeof(movingDown) == "number") {
-      movingDown = Math.min(movingDown, speed);
+      movingDown = Math.min(movingDown, maxSpeed);
     } else {
-      movingDown = speed;
+      movingDown = maxSpeed;
     }
     position.y += movingDown;
     if (position.y > canvas.ySize - length) {
@@ -168,24 +171,24 @@ function Paddle(X, Y) {
       context.rect(position.x, position.y + width/2, width, length - width);
       context.arc(position.x + width/2, position.y + width/2, width/2, 0, Math.PI, counterClockWise);
       context.arc(position.x + width/2, position.y - width/2 + length, width/2, 2*Math.PI, Math.PI, !counterClockWise);
-      context.moveTo(position.x, position.y + width/2);
-      context.lineTo(position.x - 2, position.y + length * 1/3);
-      context.lineTo(position.x - 2, position.y + length * 2/3);
-      context.lineTo(position.x, position.y + length - width/2);
-      context.moveTo(position.x + width, position.y + width/2);
-      context.lineTo(position.x + width + 2, position.y + length * 1/3);
-      context.lineTo(position.x + width + 2, position.y + length * 2/3);
-      context.lineTo(position.x + width, position.y + length - width/2);
       context.fillStyle = "#eee";
       context.fill();
     },
 
     getStatus: function() {
+      var s = 0;
+      if (movingUp) {
+        s = -movingUp;
+      }
+      if (movingDown) {
+        s = movingDown;
+      }
       return {
         position: position,
         length: length,
         width: width,
-        speed: speed
+        maxSpeed: maxSpeed,
+        speed: s
       };
     },
 
@@ -254,12 +257,12 @@ function Ball() {
 
   function changeColor() {
     bounceCount += 1;
-    if (bounceCount == 5) {
+    if (bounceCount == 2) {
       bounceCount = 0;
       if (color[0] < 15) {
-        color[0] = Math.min(color[0] + 3, 15);
+        color[0] = Math.min(color[0] + 2, 15);
       } else if (color[1] > 0) {
-        color[1] = Math.max(color[1] - 3, 0);
+        color[1] = Math.max(color[1] - 2, 0);
       }
     }
     if (speed.norm > 17) {
@@ -267,10 +270,12 @@ function Ball() {
     }
   }
 
-  function bounceSpeedUp() {
-    speed.norm += 0.15;
+  function bounceSpeedUp(s) {
+    speed.norm += s;
     calculateXYSpeed();
-    changeColor();
+    if (s > 0) {
+      changeColor();
+    }
   }
 
   return {
@@ -320,14 +325,14 @@ function Ball() {
       position.y = -position.y;
       speed.y = -speed.y;
       calculateVectSpeed();
-      bounceSpeedUp();
+      //bounceSpeedUp();
     },
 
     downBorderBounce: function() {
       position.y = 2*canvas.ySize - position.y;
       speed.y = -speed.y;
       calculateVectSpeed();
-      bounceSpeedUp();
+      //bounceSpeedUp();
     },
 
     leftPaddleBounce: function() {
@@ -339,33 +344,28 @@ function Ball() {
       if ((impact.y < leftPad.position.y) || (impact.y > leftPad.position.y + leftPad.length)) {
         console.log("Outer paddle bounce");
       }
+      speed.x = -speed.x;
       if (impact.y - leftPad.position.y < leftPad.length * 1/10) {
-        speed.tan = 2*Math.sqrt(3) * (impact.y - leftPad.position.y) / (leftPad.length) - Math.sqrt(3);
-      } else if (impact.y - leftPad.position.y < leftPad.length * 1/3) {
-        speed.tan = -speed.tan;
-        if (speed.tan < 0) {
-          speed.tan += 0.1;
-        } else {
-          speed.tan -= 0.1;
-        }
-      } else if (impact.y - leftPad.position.y < leftPad.length * 2/3) {
-        speed.tan = -speed.tan;
+        speed.tan = -Math.sqrt(3);
+        bounceSpeedUp(0.15);
       } else if (impact.y - leftPad.position.y < leftPad.length * 9/10) {
-        speed.tan = -speed.tan;
-        if (speed.tan > 0) {
-          speed.tan += 0.1;
+        if (speed.y * leftPad.speed > 0) {
+          speed.tan = -speed.tan / Math.abs(speed.tan) * 1;
+          bounceSpeedUp(0.1);
+        } else if (speed.y * leftPad.speed < 0) {
+          speed.tan = -speed.tan / Math.abs(speed.tan) * (2 - Math.sqrt(3));
+          bounceSpeedUp(0.2);
         } else {
-          speed.tan -= 0.1;
+          speed.tan = -speed.tan;
+          bounceSpeedUp(0);
         }
       } else {
-        speed.tan = 2*Math.sqrt(3) * (impact.y - leftPad.position.y) / (leftPad.length) - Math.sqrt(3);
+        speed.tan = Math.sqrt(3);
+        bounceSpeedUp(0.15);
       }
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
       position.x = impact.x + bounce;
       position.y = impact.y + bounce * speed.tan;
-      speed.x = -speed.x;
-
-      bounceSpeedUp();
     },
 
     rightPaddleBounce: function() {
@@ -377,33 +377,28 @@ function Ball() {
       if ((impact.y < rightPad.position.y) || (impact.y > rightPad.position.y + rightPad.length)) {
         console.log("Outer paddle bounce");
       }
+      speed.x = -speed.x;
       if (impact.y - rightPad.position.y < rightPad.length * 1/10) {
-        speed.tan = -2*Math.sqrt(3) * (impact.y - rightPad.position.y) / (rightPad.length) + Math.sqrt(3);
-      } else if (impact.y - rightPad.position.y < rightPad.length * 1/3) {
-        speed.tan = -speed.tan;
-        if (speed.tan > 0) {
-          speed.tan += 0.1;
-        } else {
-          speed.tan -= 0.1;
-        }
-      } else if (impact.y - rightPad.position.y < rightPad.length * 2/3) {
-        speed.tan = -speed.tan;
+        speed.tan = Math.sqrt(3);
+        bounceSpeedUp(0.15);
       } else if (impact.y - rightPad.position.y < rightPad.length * 9/10) {
-        speed.tan = -speed.tan;
-        if (speed.tan < 0) {
-          speed.tan += 0.1;
+        if (speed.y * rightPad.speed > 0) {
+          speed.tan = -speed.tan / Math.abs(speed.tan) * 1;
+          bounceSpeedUp(0.1);
+        } else if (speed.y * rightPad.speed < 0) {
+          speed.tan = -speed.tan / Math.abs(speed.tan) * (2 - Math.sqrt(3));
+          bounceSpeedUp(0.2);
         } else {
-          speed.tan -= 0.1;
+          speed.tan = -speed.tan;
+          bounceSpeedUp(0);
         }
       } else {
-        speed.tan = -2*Math.sqrt(3) * (impact.y - rightPad.position.y) / (rightPad.length) + Math.sqrt(3);
+        speed.tan = -Math.sqrt(3);
+        bounceSpeedUp(0.15);
       }
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
       position.x = impact.x - bounce;
       position.y = impact.y + bounce * speed.tan;
-      speed.x = -speed.x;
-
-      bounceSpeedUp();
     }
 
   };
@@ -481,7 +476,7 @@ function AI(difficulty) {
         var impact = this.findImpact();
         aim = impact - cpuPad.length/2;
 
-        if ((ball.position.x > cpuPad.position.x - ball.speed.x * 10) && randPos == 0) {
+        if ((ball.position.x > cpuPad.position.x - ball.speed.x * 4) && randPos == 0) {
           randPos = Math.random() * cpuPad.length - cpuPad.length/2;
         }
         aim += randPos;
