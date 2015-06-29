@@ -128,7 +128,7 @@ function Collider() {
 // -------------------------------------------
 // Paddle
 
-function Paddle(X, Y) {
+function Paddle(X, Y, padColor) {
   var position = {
     x: X,
     y: Y
@@ -138,6 +138,7 @@ function Paddle(X, Y) {
   var maxSpeed = 8;
   var movingUp = false;
   var movingDown = false;
+  var color = padColor;
 
   function moveUp() {
     if (typeof(movingUp) == "number") {
@@ -170,7 +171,7 @@ function Paddle(X, Y) {
       context.rect(position.x, position.y + width/2, width, length - width);
       context.arc(position.x + width/2, position.y + width/2, width/2, 0, Math.PI, counterClockWise);
       context.arc(position.x + width/2, position.y - width/2 + length, width/2, 2*Math.PI, Math.PI, !counterClockWise);
-      context.fillStyle = "#eee";
+      context.fillStyle = color;
       context.fill();
     },
 
@@ -216,6 +217,11 @@ function Paddle(X, Y) {
       } else {
         movingDown = false;
       }
+    },
+
+    changeColor: function() {
+      unlockedColor = "#ff0";
+      color = unlockedColor;
     }
   };
 }
@@ -232,13 +238,13 @@ function Ball() {
   };
   var radius = 7;
   var color = [0, 15, 0];
-  var bounceCount = 0;
   var speed = {
     norm: 0,
     tan: 0,
     x: 0,
     y: 0
   };
+  var colorSpeedStep = 4;
 
   function calculateXYSpeed() {
     var sign = (speed.x < 0);
@@ -250,22 +256,24 @@ function Ball() {
   }
 
   function calculateVectSpeed() {
-    speed.norm = Math.sqrt(quad(speed.x) + quad(speed.y));
+    speed.norm = Math.round(Math.sqrt(quad(speed.x) + quad(speed.y)) * 10) / 10;
     speed.tan = speed.y / speed.x;
   }
 
   function changeColor() {
-    bounceCount += 1;
-    if (bounceCount == 2) {
-      bounceCount = 0;
+    if (speed.norm - colorSpeedStep >= 0.5) {
+      colorSpeedStep += 0.5;
       if (color[0] < 15) {
         color[0] = Math.min(color[0] + 2, 15);
       } else if (color[1] > 0) {
         color[1] = Math.max(color[1] - 2, 0);
       }
     }
-    if (speed.norm > 17) {
+    if (speed.norm > 15) {
       color[2] = 15;
+    }
+    if (speed.norm > 20) {
+      leftPaddle.changeColor();
     }
   }
 
@@ -291,6 +299,7 @@ function Ball() {
       if (tossCoin) {
         speed.x = -speed.x
       }
+      colorSpeedStep = 4;
       color = [0,15,0];
     },
 
@@ -346,7 +355,7 @@ function Ball() {
       speed.x = -speed.x;
       if (impact.y - leftPad.position.y < leftPad.length * 1/10) {
         speed.tan = -Math.sqrt(3);
-        bounceSpeedUp(0.15);
+        bounceSpeedUp(0.1);
       } else if (impact.y - leftPad.position.y < leftPad.length * 9/10) {
         if (speed.y * leftPad.speed > 0) {
           speed.tan = -speed.tan / Math.abs(speed.tan) * 1;
@@ -360,7 +369,7 @@ function Ball() {
         }
       } else {
         speed.tan = Math.sqrt(3);
-        bounceSpeedUp(0.15);
+        bounceSpeedUp(0.1);
       }
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
       position.x = impact.x + bounce;
@@ -379,7 +388,7 @@ function Ball() {
       speed.x = -speed.x;
       if (impact.y - rightPad.position.y < rightPad.length * 1/10) {
         speed.tan = Math.sqrt(3);
-        bounceSpeedUp(0.15);
+        bounceSpeedUp(0.1);
       } else if (impact.y - rightPad.position.y < rightPad.length * 9/10) {
         if (speed.y * rightPad.speed > 0) {
           speed.tan = -speed.tan / Math.abs(speed.tan) * 1;
@@ -393,7 +402,7 @@ function Ball() {
         }
       } else {
         speed.tan = -Math.sqrt(3);
-        bounceSpeedUp(0.15);
+        bounceSpeedUp(0.1);
       }
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
       position.x = impact.x - bounce;
@@ -646,8 +655,8 @@ function Menu() {
   }
 
   function launchGame() {
-    leftPaddle = new Paddle(20, 250);
-    rightPaddle = new Paddle(canvas.xSize - 26, 250);
+    leftPaddle = new Paddle(20, 250, unlockedColor);
+    rightPaddle = new Paddle(canvas.xSize - 26, 250, "#eee");
     gameBall = new Ball();
     gameBall.initPos();
     gameBall.initSpeed();
@@ -737,6 +746,7 @@ var context = gameCanvas.getContext("2d");
 // paddles
 var leftPaddle;
 var rightPaddle;
+var unlockedColor = "#eee";
 
 // ball
 var gameBall;
