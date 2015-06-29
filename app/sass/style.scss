@@ -41,8 +41,8 @@ h1 {
   height: 60px;
   width: 300px;
   margin: 0 auto;
-  margin-top: 30px;
   text-align: center;
+  font-size: 36px;
   color: white;
 }
 
@@ -50,8 +50,8 @@ h1 {
   height: 60px;
   width: 300px;
   margin: 0 auto;
-  margin-top: 30px;
   text-align: center;
+  font-size: 36px;
   color: white;
 }
 
@@ -60,11 +60,24 @@ h1 {
   color: yellow;
 }
 
-span {
+.btn span {
   vertical-align: middle;
   line-height: 60px;
   color: inherit;
-  font-size: 36px;
+}
+
+.highlight {
+  margin: 0 auto;
+  margin-top: -15px;
+  text-align: center;
+  color: #111;
+}
+
+.highlight span {
+  vertical-align: middle;
+  line-height: 60px;
+  color: inherit;
+  font-size: 16px;
 }
 
 canvas {

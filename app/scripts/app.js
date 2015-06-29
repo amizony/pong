@@ -642,9 +642,11 @@ function Menu() {
     },
     pause: function() {
       document.getElementById("pause").style.display = "initial";
+      document.getElementById("pause-h").style.color = "yellow";
       gameState = "pause";
     },
     resumeGame: function () {
+      document.getElementById("pause-h").style.color = "#111";
       document.getElementById("pause").style.display = "none";
       gameState = "playing";
     },
@@ -656,10 +658,12 @@ function Menu() {
     },
     gameover: function(winner) {
       document.getElementById("victory").style.display = "initial";
+      document.getElementById("win-h").style.color = "yellow";
       document.getElementById("winner").innerHTML = "<span> " + winner + " wins! </span>";
       gameState = "gameover";
     },
     newGame: function() {
+      document.getElementById("win-h").style.color = "#111";
       launchGame();
     }
   };
@@ -802,3 +806,29 @@ document.getElementById("continue").addEventListener("click", menu.resumeGame);
 document.getElementById("retmenu1").addEventListener("click", menu.returnMenu);
 document.getElementById("retmenu2").addEventListener("click", menu.returnMenu);
 document.getElementById("newgame").addEventListener("click", menu.newGame);
+
+
+
+// -------------------------------------------
+// Menu hover
+
+document.getElementById("displayai").addEventListener("mouseover", function() { document.getElementById("displayai-h").style.color = "yellow"; });
+document.getElementById("displayai").addEventListener("mouseout", function() { document.getElementById("displayai-h").style.color = "#111"; });
+document.getElementById("ai1").addEventListener("mouseover", function() { document.getElementById("ai1-h").style.color = "yellow"; });
+document.getElementById("ai1").addEventListener("mouseout", function() { document.getElementById("ai1-h").style.color = "#111"; });
+document.getElementById("ai2").addEventListener("mouseover", function() { document.getElementById("ai2-h").style.color = "yellow"; });
+document.getElementById("ai2").addEventListener("mouseout", function() { document.getElementById("ai2-h").style.color = "#111"; });
+document.getElementById("ai3").addEventListener("mouseover", function() { document.getElementById("ai3-h").style.color = "yellow"; });
+document.getElementById("ai3").addEventListener("mouseout", function() { document.getElementById("ai3-h").style.color = "#111"; });
+document.getElementById("2p").addEventListener("mouseover", function() { document.getElementById("2p-h").style.color = "yellow"; });
+document.getElementById("2p").addEventListener("mouseout", function() { document.getElementById("2p-h").style.color = "#111"; });
+document.getElementById("bonus").addEventListener("mouseover", function() { document.getElementById("bonus-h").style.color = "yellow"; });
+document.getElementById("bonus").addEventListener("mouseout", function() { document.getElementById("bonus-h").style.color = "#111"; });
+document.getElementById("continue").addEventListener("mouseover", function() { document.getElementById("continue-h").style.color = "yellow"; });
+document.getElementById("continue").addEventListener("mouseout", function() { document.getElementById("continue-h").style.color = "#111"; });
+document.getElementById("retmenu1").addEventListener("mouseover", function() { document.getElementById("retmenu1-h").style.color = "yellow"; });
+document.getElementById("retmenu1").addEventListener("mouseout", function() { document.getElementById("retmenu1-h").style.color = "#111"; });
+document.getElementById("newgame").addEventListener("mouseover", function() { document.getElementById("newgame-h").style.color = "yellow"; });
+document.getElementById("newgame").addEventListener("mouseout", function() { document.getElementById("newgame-h").style.color = "#111"; });
+document.getElementById("retmenu2").addEventListener("mouseover", function() { document.getElementById("retmenu2-h").style.color = "yellow"; });
+document.getElementById("retmenu2").addEventListener("mouseout", function() { document.getElementById("retmenu2-h").style.color = "#111"; });
