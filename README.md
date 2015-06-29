@@ -14,6 +14,7 @@ HTML5 application built with [Grunt](gruntjs.com) and using only javascript.
 * Pong game
 * Different level of AI
 * Two players mode
+* The paddle movement affect the ball during the bounce
 * Temporary bonuses (Comming soon)
 
 ## Quick start
@@ -26,6 +27,8 @@ Install
 Run `grunt` to launch a local server you can then access on port 3000 of localhost.
 
 ## Game Controls
+
+* `spacebar` for pausing the game
 
 Player 1:
 * `e` for moving up
