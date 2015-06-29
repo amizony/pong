@@ -73,10 +73,15 @@ h1 {
   color: #111;
 }
 
+.highlight .white {
+  color: white;
+}
+
 .highlight span {
   vertical-align: middle;
   line-height: 60px;
   color: inherit;
+  font-style: italic;
   font-size: 16px;
 }
 
