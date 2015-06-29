@@ -268,7 +268,6 @@ function Ball() {
   }
 
   function calculateColor() {
-    var totalSpeed = speed.norm + speed.bonus;
     if (speed.norm > 20) {
       leftPaddle.changeColor();
     }
@@ -457,6 +456,15 @@ function Ball() {
 function AI(difficulty) {
   var easyMaxSpeed = 4;
 
+  function bouncing() {
+    var cpuPad = rightPaddle.getStatus();
+    var ball = gameBall.getStatus();
+    if (ball.position.x + ball.speed.x > cpuPad.position.x) {
+      return true;
+    }
+    return false;
+  }
+
   if (difficulty == "easy") {
     return {
       decide: function() {
@@ -464,10 +472,12 @@ function AI(difficulty) {
         rightPaddle.requestMoveDown(false);
         var cpuPad = rightPaddle.getStatus();
         var ball = gameBall.getStatus();
-        if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
-          rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)), easyMaxSpeed));
-        } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
-          rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)), easyMaxSpeed));
+        if (!bouncing()) {
+          if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
+            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)), easyMaxSpeed));
+          } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
+            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)), easyMaxSpeed));
+          }
         }
       }
     };
@@ -478,10 +488,29 @@ function AI(difficulty) {
         rightPaddle.requestMoveDown(false);
         var cpuPad = rightPaddle.getStatus();
         var ball = gameBall.getStatus();
-        if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
-          rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)));
-        } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
-          rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)));
+        if (!bouncing()) {
+          if (ball.speed.y < 0) {
+            if (ball.position.y + ball.speed.y < cpuPad.position.y + cpuPad.length * 1/2) {
+              rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 4/6 - ball.position.y - ball.speed.y)));
+            }
+            if (ball.position.y + ball.speed.y > cpuPad.position.y + cpuPad.length * 5/6) {
+              rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 4/6 - ball.position.y - ball.speed.y)));
+            }
+          } else {
+            if (ball.position.y + ball.speed.y > cpuPad.position.y + cpuPad.length * 1/2) {
+              rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/6 - ball.position.y - ball.speed.y)));
+            }
+            if (ball.position.y + ball.speed.y < cpuPad.position.y + cpuPad.length * 1/6) {
+              rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/6 - ball.position.y - ball.speed.y)));
+            }
+          }
+        } else {
+          var rand = Math.random();
+          if (rand > 0.666) {
+            rightPaddle.requestMoveUp(true);
+          } else if (rand > 0.333) {
+            rightPaddle.requestMoveDown(true);
+          }
         }
       }
     };
@@ -518,10 +547,15 @@ function AI(difficulty) {
       reflect: function() {
         cpuPad = rightPaddle.getStatus();
         ball = gameBall.getStatus();
+
+        if (ball.speed.lift) {
+          ball.speed.tan = sign(ball.speed.tan) / Math.sqrt(3);
+        }
+
         var impact = this.findImpact();
         aim = impact - cpuPad.length/2;
 
-        if ((ball.position.x > cpuPad.position.x - ball.speed.x * 4) && randPos == 0) {
+        if (bouncing()) {
           randPos = Math.random() * cpuPad.length - cpuPad.length/2;
         }
         aim += randPos;
