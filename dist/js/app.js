@@ -30,7 +30,7 @@ function convertColor(rgb) {
 }
 
 function randomTangent() {
-  return Math.min(Math.max(Math.random() * 10 - 5, - Math.sqrt(3)), Math.sqrt(3));
+  return Math.min(Math.max(Math.random() * 4 - 2, - 1), 1);
 }
 
 function sign(x) {
@@ -227,7 +227,7 @@ function Paddle(X, Y, padColor) {
     },
 
     changeColor: function() {
-      unlockedColor = "#ff0";
+      unlockedColor = "#60D";
       color = unlockedColor;
     }
   };
@@ -244,7 +244,6 @@ function Ball() {
     y: -10
   };
   var radius = 7;
-  var color = [0, 15, 0];
   var speed = {
     norm: 0,
     bonus:0,
@@ -265,33 +264,33 @@ function Ball() {
   }
 
   function calculateVectSpeed() {
-    speed.norm = Math.round(Math.sqrt(quad(speed.x) + quad(speed.y)) * 10) / 10;
+    speed.norm = Math.round(Math.sqrt(quad(speed.x) + quad(speed.y)) * 10) / 10 - speed.bonus;
     speed.tan = speed.y / speed.x;
   }
 
-  function changeColor() {
-    if (speed.norm - colorSpeedStep >= 0.5) {
-      colorSpeedStep += 0.5;
-      if (color[0] < 15) {
-        color[0] = Math.min(color[0] + 2, 15);
-      } else if (color[1] > 0) {
-        color[1] = Math.max(color[1] - 2, 0);
-      }
-    }
-    if (speed.norm > 15) {
-      color[2] = 15;
-    }
+  function calculateColor() {
+    var totalSpeed = speed.norm + speed.bonus;
     if (speed.norm > 20) {
       leftPaddle.changeColor();
+    }
+    if (speed.norm > 17) {
+      return [0, 0, 15];
+    }
+    if (speed.lift) {
+      return [0, 15, 0];
+    }
+    if (speed.bonus > speed.norm / 4) {
+      return [15, 4, 0];
+    } else if (speed.bonus > 0) {
+      return [15, 12, 0];
+    } else {
+      return [13, 15, 0];
     }
   }
 
   function bounceSpeedUp(s) {
     speed.norm += s;
     calculateXYSpeed();
-    if (s > 0) {
-      changeColor();
-    }
   }
 
   return {
@@ -310,8 +309,6 @@ function Ball() {
       if (tossCoin) {
         speed.x = -speed.x
       }
-      colorSpeedStep = 4;
-      color = [0,15,0];
     },
 
     initPos: function() {
@@ -323,7 +320,7 @@ function Ball() {
       var counterClockWise = true;
       context.beginPath();
       context.arc(position.x, position.y, radius, 0, 2*Math.PI, counterClockWise);
-      context.fillStyle = convertColor(color);
+      context.fillStyle = convertColor(calculateColor());
       context.fill();
     },
 
@@ -398,11 +395,11 @@ function Ball() {
         speed.tan = -Math.sqrt(3);
       } else if (impact.y - leftPad.position.y < leftPad.length * 9/10) {
         if (speed.y * leftPad.speed > 0) {
-          speed.bonus = -1;
+          speed.bonus = - speed.norm / 5;
           speed.lift = true;
           speed.tan = -sign(speed.tan) * 1;
         } else if (speed.y * leftPad.speed < 0) {
-          speed.bonus = 2;
+          speed.bonus = speed.norm / 3;
           speed.tan = -sign(speed.tan) * (2 - Math.sqrt(3));
         } else {
           speed.tan = -sign(speed.tan) * 1 / Math.sqrt(3);
@@ -432,11 +429,11 @@ function Ball() {
         speed.tan = Math.sqrt(3);
       } else if (impact.y - rightPad.position.y < rightPad.length * 9/10) {
         if (speed.y * rightPad.speed > 0) {
-          speed.bonus = -1;
+          speed.bonus = - speed.norm / 5;
           speed.lift = true;
           speed.tan = -sign(speed.tan) * 1;
         } else if (speed.y * rightPad.speed < 0) {
-          speed.bonus = 2;
+          speed.bonus = speed.norm / 3;
           speed.tan = -sign(speed.tan) * (2 - Math.sqrt(3));
         } else {
           speed.tan = -sign(speed.tan) * 1 / Math.sqrt(3);
