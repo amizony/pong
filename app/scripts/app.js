@@ -9,8 +9,12 @@ function distance(Ax, Ay, Bx, By) {
   return Math.sqrt(quad(Ax - Bx) + quad(Ay - By));
 }
 
-function intersect(Ax, Ay, Bx, By, abscissa) {
+function intersectX(Ax, Ay, Bx, By, abscissa) {
   return (By - Ay) / (Bx - Ax) * (abscissa - Ax) + Ay;
+}
+
+function intersectY(Ax, Ay, Bx, By, ordinate) {
+  return (Bx - Ax) / (By - Ay) * (ordinate - Ay) + Ax;
 }
 
 function calculateBounceAbscissa(Ax, Ay, tan) {
@@ -28,7 +32,9 @@ function randomTangent() {
   return Math.min(Math.max(Math.random() * 10 - 5, - Math.sqrt(3)), Math.sqrt(3));
 }
 
-
+function sign(x) {
+  return x / Math.abs(x);
+}
 
 // -------------------------------------------
 // Collider
@@ -240,16 +246,18 @@ function Ball() {
   var color = [0, 15, 0];
   var speed = {
     norm: 0,
+    bonus:0,
     tan: 0,
+    lift: false,
     x: 0,
     y: 0
   };
   var colorSpeedStep = 4;
 
   function calculateXYSpeed() {
-    var sign = (speed.x < 0);
-    speed.x = speed.norm / (Math.sqrt(1 + quad(speed.tan)));
-    if (sign) {
+    var signX = (speed.x < 0);
+    speed.x = (speed.norm + speed.bonus) / (Math.sqrt(1 + quad(speed.tan)));
+    if (signX) {
       speed.x = -speed.x
     }
     speed.y = speed.x * speed.tan;
@@ -293,7 +301,9 @@ function Ball() {
 
     initSpeed: function () {
       speed.norm = 4;
+      speed.bonus = 0;
       speed.tan = randomTangent();
+      speed.lift = false;
       calculateXYSpeed();
       var tossCoin = (Math.random() > 0.5);
       if (tossCoin) {
@@ -330,47 +340,76 @@ function Ball() {
     },
 
     upBorderBounce: function() {
-      position.y = -position.y;
-      speed.y = -speed.y;
-      calculateVectSpeed();
-      //bounceSpeedUp();
+      if (speed.lift) {
+        var impact = {
+          x: intersectY(position.x - speed.x, position.y - speed.y, position.x, position.y, 0),
+          y: 0
+        }
+        speed.lift = false;
+        speed.bonus = -speed.bonus;
+        speed.tan = sign(speed.x) * Math.abs(randomTangent());
+        calculateXYSpeed();
+        var bounce = calculateBounceAbscissa(impact.y - position.y, impact.x - position.x, 1 / speed.tan);
+        position.x = impact.x + bounce * speed.tan;
+        position.y = impact.y + bounce;
+      } else {
+        position.y = -position.y;
+        speed.y = -speed.y;
+        calculateVectSpeed();
+      }
+      bounceSpeedUp(0.1);
     },
 
     downBorderBounce: function() {
-      position.y = 2*canvas.ySize - position.y;
-      speed.y = -speed.y;
-      calculateVectSpeed();
-      //bounceSpeedUp();
+      if (speed.lift) {
+        var impact = {
+          x: intersectY(position.x - speed.x, position.y - speed.y, position.x, position.y, canvas.ySize),
+          y: canvas.ySize
+        }
+        speed.lift = false;
+        speed.bonus = -speed.bonus;
+        speed.tan = -sign(speed.x) * Math.abs(randomTangent());
+        calculateXYSpeed();
+        var bounce = calculateBounceAbscissa(impact.y - position.y, impact.x - position.x, 1 / speed.tan);
+        position.x = impact.x + bounce * speed.tan;
+        position.y = impact.y + bounce;
+      } else {
+        position.y = 2*canvas.ySize - position.y;
+        speed.y = -speed.y;
+        calculateVectSpeed();
+      }
+      bounceSpeedUp(0.1);
     },
 
     leftPaddleBounce: function() {
       var leftPad = leftPaddle.getStatus();
       var impact = {
         x: leftPad.position.x + leftPad.width,
-        y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, leftPad.position.x + leftPad.width)
+        y: intersectX(position.x - speed.x, position.y - speed.y, position.x, position.y, leftPad.position.x + leftPad.width)
       };
       if ((impact.y < leftPad.position.y) || (impact.y > leftPad.position.y + leftPad.length)) {
         console.log("Outer paddle bounce");
       }
       speed.x = -speed.x;
+      speed.lift = false;
+      speed.bonus = 0;
       if (impact.y - leftPad.position.y < leftPad.length * 1/10) {
         speed.tan = -Math.sqrt(3);
-        bounceSpeedUp(0.1);
       } else if (impact.y - leftPad.position.y < leftPad.length * 9/10) {
         if (speed.y * leftPad.speed > 0) {
-          speed.tan = -speed.tan / Math.abs(speed.tan) * 1;
-          bounceSpeedUp(0.1);
+          speed.bonus = -1;
+          speed.lift = true;
+          speed.tan = -sign(speed.tan) * 1;
         } else if (speed.y * leftPad.speed < 0) {
-          speed.tan = -speed.tan / Math.abs(speed.tan) * (2 - Math.sqrt(3));
-          bounceSpeedUp(0.2);
+          speed.bonus = 2;
+          speed.tan = -sign(speed.tan) * (2 - Math.sqrt(3));
         } else {
-          speed.tan = -speed.tan;
-          bounceSpeedUp(0);
+          speed.tan = -sign(speed.tan) * 1 / Math.sqrt(3);
         }
       } else {
         speed.tan = Math.sqrt(3);
-        bounceSpeedUp(0.1);
       }
+      bounceSpeedUp(0.1);
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
       position.x = impact.x + bounce;
       position.y = impact.y + bounce * speed.tan;
@@ -380,30 +419,31 @@ function Ball() {
       var rightPad = rightPaddle.getStatus();
       var impact = {
         x: rightPad.position.x,
-        y: intersect(position.x - speed.x, position.y - speed.y, position.x, position.y, rightPad.position.x)
+        y: intersectX(position.x - speed.x, position.y - speed.y, position.x, position.y, rightPad.position.x)
       };
       if ((impact.y < rightPad.position.y) || (impact.y > rightPad.position.y + rightPad.length)) {
         console.log("Outer paddle bounce");
       }
       speed.x = -speed.x;
+      speed.lift = false;
+      speed.bonus = 0;
       if (impact.y - rightPad.position.y < rightPad.length * 1/10) {
         speed.tan = Math.sqrt(3);
-        bounceSpeedUp(0.1);
       } else if (impact.y - rightPad.position.y < rightPad.length * 9/10) {
         if (speed.y * rightPad.speed > 0) {
-          speed.tan = -speed.tan / Math.abs(speed.tan) * 1;
-          bounceSpeedUp(0.1);
+          speed.bonus = -1;
+          speed.lift = true;
+          speed.tan = -sign(speed.tan) * 1;
         } else if (speed.y * rightPad.speed < 0) {
-          speed.tan = -speed.tan / Math.abs(speed.tan) * (2 - Math.sqrt(3));
-          bounceSpeedUp(0.2);
+          speed.bonus = 2;
+          speed.tan = -sign(speed.tan) * (2 - Math.sqrt(3));
         } else {
-          speed.tan = -speed.tan;
-          bounceSpeedUp(0);
+          speed.tan = -sign(speed.tan) * 1 / Math.sqrt(3);
         }
       } else {
         speed.tan = -Math.sqrt(3);
-        bounceSpeedUp(0.1);
       }
+      bounceSpeedUp(0.1);
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
       position.x = impact.x - bounce;
       position.y = impact.y + bounce * speed.tan;
@@ -494,7 +534,7 @@ function AI(difficulty) {
         cpuPad = rightPaddle.getStatus();
         ball = gameBall.getStatus();
 
-        var impact = intersect(ball.position.x - ball.speed.x, ball.position.y - ball.speed.y, ball.position.x, ball.position.y, cpuPad.position.x);
+        var impact = intersectX(ball.position.x - ball.speed.x, ball.position.y - ball.speed.y, ball.position.x, ball.position.y, cpuPad.position.x);
 
         while ((impact < 0 ) || (impact > canvas.ySize)) {
           if (impact < 0) {
