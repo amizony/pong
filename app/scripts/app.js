@@ -225,8 +225,24 @@ function Paddle(X, Y, padColor) {
       }
     },
 
-    changeColor: function() {
-      unlockedColor = "#60D";
+    changeColor: function(condition) {
+      switch (condition) {
+        case "high-speed":
+          if (unlockedColor == "#eee") {
+            unlockedColor = "#2ED";
+          }
+          break;
+        case "beat-medium":
+          if (unlockedColor != "#60D") {
+            unlockedColor = "#BADA55";
+          }
+          break;
+        case "beat-hard":
+          unlockedColor = "#60D";
+          break;
+        default:
+          break;
+      }
       color = unlockedColor;
     }
   };
@@ -268,11 +284,8 @@ function Ball() {
   }
 
   function calculateColor() {
-    if (speed.norm > 20) {
-      leftPaddle.changeColor();
-    }
-    if (speed.norm > 17) {
-      return [0, 0, 15];
+    if ((speed.norm + speed.bonus > 17) && (speed.x > 0)) {
+      leftPaddle.changeColor("high-speed");
     }
     if (speed.lift) {
       return [0, 15, 0];
@@ -610,7 +623,7 @@ function ScoreCounter(player1, player2) {
       leftScore += 1;
       updateDisplay();
       if (leftScore > 1) {
-        menu.gameover(leftPlayer);
+        menu.gameover(leftPlayer, rightPlayer);
         return false;
       } else {
         return true;
@@ -621,7 +634,7 @@ function ScoreCounter(player1, player2) {
       rightScore += 1;
       updateDisplay();
       if (rightScore > 1) {
-        menu.gameover(rightPlayer);
+        menu.gameover(rightPlayer, leftPlayer);
         return false;
       } else {
         return true;
@@ -777,11 +790,17 @@ function Menu() {
       document.getElementById("main").style.display = "initial";
       gameState = "menu";
     },
-    gameover: function(winner) {
+    gameover: function(winner, looser) {
       document.getElementById("victory").style.display = "initial";
       document.getElementById("win-h").style.color = "yellow";
       document.getElementById("winner").innerHTML = "<span> " + winner + " wins! </span>";
       gameState = "gameover";
+      if ((winner == "Player") && (looser == "CPU")) {
+        leftPaddle.changeColor("beat-medium");
+      }
+      if ((winner == "Player") && (looser == "Smart CPU")) {
+        leftPaddle.changeColor("beat-hard");
+      }
     },
     newGame: function() {
       document.getElementById("win-h").style.color = "#111";
