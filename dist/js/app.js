@@ -323,6 +323,10 @@ function Ball() {
       context.fill();
     },
 
+    displaySpeed: function() {
+      document.getElementById("speed").innerHTML = "Ball speed:  " + Math.round((speed.norm + speed.bonus)*60) + " (px/s)";
+    },
+
     getStatus: function() {
       return {
         position: position,
@@ -652,6 +656,7 @@ function Engine() {
     if (gameState != "menu") {
       if (gameState == "playing") {
         gameBall.render();
+        gameBall.displaySpeed();
       }
       leftPaddle.render();
       rightPaddle.render();
