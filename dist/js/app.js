@@ -279,11 +279,11 @@ function Ball() {
       return [0, 15, 0];
     }
     if (speed.bonus > speed.norm / 4) {
-      return [15, 4, 0];
+      return [15, 3, 0];
     } else if (speed.bonus > 0) {
-      return [15, 12, 0];
+      return [15, 10, 0];
     } else {
-      return [13, 15, 0];
+      return [15, 15, 0];
     }
   }
 
