@@ -456,6 +456,7 @@ function Ball() {
 
 function AI(difficulty) {
   var easyMaxSpeed = 4;
+  var mediumMaxSpeed = 7;
 
   function bouncing() {
     var cpuPad = rightPaddle.getStatus();
@@ -469,15 +470,16 @@ function AI(difficulty) {
   if (difficulty == "easy") {
     return {
       decide: function() {
+        var epsilon = 1;
         rightPaddle.requestMoveUp(false);
         rightPaddle.requestMoveDown(false);
         var cpuPad = rightPaddle.getStatus();
         var ball = gameBall.getStatus();
         if (!bouncing()) {
-          if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
-            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)), easyMaxSpeed));
-          } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
-            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)), easyMaxSpeed));
+          if ((cpuPad.position.y + cpuPad.length * 1/2) > ball.position.y + ball.speed.y + epsilon) {
+            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), easyMaxSpeed));
+          } else if ((cpuPad.position.y + cpuPad.length * 1/2) < ball.position.y + ball.speed.y - epsilon) {
+            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), easyMaxSpeed));
           }
         }
       }
@@ -485,25 +487,16 @@ function AI(difficulty) {
   } else if (difficulty == "medium") {
     return {
       decide: function() {
+        var epsilon = 1;
         rightPaddle.requestMoveUp(false);
         rightPaddle.requestMoveDown(false);
         var cpuPad = rightPaddle.getStatus();
         var ball = gameBall.getStatus();
         if (!bouncing()) {
-          if (ball.speed.y < 0) {
-            if (ball.position.y + ball.speed.y < cpuPad.position.y + cpuPad.length * 1/2) {
-              rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 4/6 - ball.position.y - ball.speed.y)));
-            }
-            if (ball.position.y + ball.speed.y > cpuPad.position.y + cpuPad.length * 5/6) {
-              rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 4/6 - ball.position.y - ball.speed.y)));
-            }
-          } else {
-            if (ball.position.y + ball.speed.y > cpuPad.position.y + cpuPad.length * 1/2) {
-              rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/6 - ball.position.y - ball.speed.y)));
-            }
-            if (ball.position.y + ball.speed.y < cpuPad.position.y + cpuPad.length * 1/6) {
-              rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/6 - ball.position.y - ball.speed.y)));
-            }
+          if ((cpuPad.position.y + cpuPad.length * 1/2) > ball.position.y + ball.speed.y + epsilon) {
+            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), mediumMaxSpeed));
+          } else if ((cpuPad.position.y + cpuPad.length * 1/2) < ball.position.y + ball.speed.y - epsilon) {
+            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), mediumMaxSpeed));
           }
         } else {
           var rand = Math.random();
