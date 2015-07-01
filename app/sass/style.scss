@@ -92,7 +92,19 @@ canvas {
   background: #111;
 }
 
-#fps-div {
+.bottom {
   width: 800px;
   margin: 0 auto;
+}
+
+#speed {
+  display: inline-block;
+  width: 378px;
+  padding-left: 20px
+}
+
+#fps-div {
+  display: inline-block;
+  width: 378px;
+  padding-right: 20px;
 }

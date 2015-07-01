@@ -226,8 +226,24 @@ function Paddle(X, Y, padColor) {
       }
     },
 
-    changeColor: function() {
-      unlockedColor = "#60D";
+    changeColor: function(condition) {
+      switch (condition) {
+        case "high-speed":
+          if (unlockedColor == "#eee") {
+            unlockedColor = "#2ED";
+          }
+          break;
+        case "beat-medium":
+          if (unlockedColor != "#60D") {
+            unlockedColor = "#BADA55";
+          }
+          break;
+        case "beat-hard":
+          unlockedColor = "#60D";
+          break;
+        default:
+          break;
+      }
       color = unlockedColor;
     }
   };
@@ -269,21 +285,18 @@ function Ball() {
   }
 
   function calculateColor() {
-    if (speed.norm > 20) {
-      leftPaddle.changeColor();
-    }
-    if (speed.norm > 17) {
-      return [0, 0, 15];
+    if ((speed.norm + speed.bonus > 17) && (speed.x > 0)) {
+      leftPaddle.changeColor("high-speed");
     }
     if (speed.lift) {
       return [0, 15, 0];
     }
     if (speed.bonus > speed.norm / 4) {
-      return [15, 4, 0];
+      return [15, 3, 0];
     } else if (speed.bonus > 0) {
-      return [15, 12, 0];
+      return [15, 10, 0];
     } else {
-      return [13, 15, 0];
+      return [15, 15, 0];
     }
   }
 
@@ -321,6 +334,10 @@ function Ball() {
       context.arc(position.x, position.y, radius, 0, 2*Math.PI, counterClockWise);
       context.fillStyle = convertColor(calculateColor());
       context.fill();
+    },
+
+    displaySpeed: function() {
+      document.getElementById("speed").innerHTML = "Ball speed:  " + Math.round((speed.norm + speed.bonus)*60) + " (px/s)";
     },
 
     getStatus: function() {
@@ -456,6 +473,7 @@ function Ball() {
 
 function AI(difficulty) {
   var easyMaxSpeed = 4;
+  var mediumMaxSpeed = 7;
 
   function bouncing() {
     var cpuPad = rightPaddle.getStatus();
@@ -469,15 +487,16 @@ function AI(difficulty) {
   if (difficulty == "easy") {
     return {
       decide: function() {
+        var epsilon = 1;
         rightPaddle.requestMoveUp(false);
         rightPaddle.requestMoveDown(false);
         var cpuPad = rightPaddle.getStatus();
         var ball = gameBall.getStatus();
         if (!bouncing()) {
-          if ((cpuPad.position.y + cpuPad.length * 1/3) > ball.position.y) {
-            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/3 - ball.position.y)), easyMaxSpeed));
-          } else if ((cpuPad.position.y + cpuPad.length * 2/3) < ball.position.y) {
-            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/3 - ball.position.y)), easyMaxSpeed));
+          if ((cpuPad.position.y + cpuPad.length * 1/2) > ball.position.y + ball.speed.y + epsilon) {
+            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), easyMaxSpeed));
+          } else if ((cpuPad.position.y + cpuPad.length * 1/2) < ball.position.y + ball.speed.y - epsilon) {
+            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), easyMaxSpeed));
           }
         }
       }
@@ -485,25 +504,16 @@ function AI(difficulty) {
   } else if (difficulty == "medium") {
     return {
       decide: function() {
+        var epsilon = 1;
         rightPaddle.requestMoveUp(false);
         rightPaddle.requestMoveDown(false);
         var cpuPad = rightPaddle.getStatus();
         var ball = gameBall.getStatus();
         if (!bouncing()) {
-          if (ball.speed.y < 0) {
-            if (ball.position.y + ball.speed.y < cpuPad.position.y + cpuPad.length * 1/2) {
-              rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 4/6 - ball.position.y - ball.speed.y)));
-            }
-            if (ball.position.y + ball.speed.y > cpuPad.position.y + cpuPad.length * 5/6) {
-              rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 4/6 - ball.position.y - ball.speed.y)));
-            }
-          } else {
-            if (ball.position.y + ball.speed.y > cpuPad.position.y + cpuPad.length * 1/2) {
-              rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/6 - ball.position.y - ball.speed.y)));
-            }
-            if (ball.position.y + ball.speed.y < cpuPad.position.y + cpuPad.length * 1/6) {
-              rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 2/6 - ball.position.y - ball.speed.y)));
-            }
+          if ((cpuPad.position.y + cpuPad.length * 1/2) > ball.position.y + ball.speed.y + epsilon) {
+            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), mediumMaxSpeed));
+          } else if ((cpuPad.position.y + cpuPad.length * 1/2) < ball.position.y + ball.speed.y - epsilon) {
+            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), mediumMaxSpeed));
           }
         } else {
           var rand = Math.random();
@@ -614,7 +624,7 @@ function ScoreCounter(player1, player2) {
       leftScore += 1;
       updateDisplay();
       if (leftScore > 1) {
-        menu.gameover(leftPlayer);
+        menu.gameover(leftPlayer, rightPlayer);
         return false;
       } else {
         return true;
@@ -625,7 +635,7 @@ function ScoreCounter(player1, player2) {
       rightScore += 1;
       updateDisplay();
       if (rightScore > 1) {
-        menu.gameover(rightPlayer);
+        menu.gameover(rightPlayer, leftPlayer);
         return false;
       } else {
         return true;
@@ -659,6 +669,7 @@ function Engine() {
     if (gameState != "menu") {
       if (gameState == "playing") {
         gameBall.render();
+        gameBall.displaySpeed();
       }
       leftPaddle.render();
       rightPaddle.render();
@@ -780,11 +791,17 @@ function Menu() {
       document.getElementById("main").style.display = "initial";
       gameState = "menu";
     },
-    gameover: function(winner) {
+    gameover: function(winner, looser) {
       document.getElementById("victory").style.display = "initial";
       document.getElementById("win-h").style.color = "yellow";
       document.getElementById("winner").innerHTML = "<span> " + winner + " wins! </span>";
       gameState = "gameover";
+      if ((winner == "Player") && (looser == "CPU")) {
+        leftPaddle.changeColor("beat-medium");
+      }
+      if ((winner == "Player") && (looser == "Smart CPU")) {
+        leftPaddle.changeColor("beat-hard");
+      }
     },
     newGame: function() {
       document.getElementById("win-h").style.color = "#111";
