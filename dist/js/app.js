@@ -474,6 +474,9 @@ function Ball() {
 function AI(difficulty) {
   var easyMaxSpeed = 4;
   var mediumMaxSpeed = 7;
+  var randPos = 0;
+  var epsilon = 1;
+  var aim = canvas.ySize/2;
 
   function bouncing() {
     var cpuPad = rightPaddle.getStatus();
@@ -484,111 +487,108 @@ function AI(difficulty) {
     return false;
   }
 
+  function followBall (maxSpeed) {
+    var cpuPad = rightPaddle.getStatus();
+    var ball = gameBall.getStatus();
+    if ((cpuPad.position.y + cpuPad.length * 1/2) > ball.position.y + ball.speed.y + epsilon) {
+      rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), maxSpeed));
+    } else if ((cpuPad.position.y + cpuPad.length * 1/2) < ball.position.y + ball.speed.y - epsilon) {
+      rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), maxSpeed));
+    }
+  }
+
+  function goto(pos) {
+    var cpuPad = rightPaddle.getStatus();
+    rightPaddle.requestMoveUp(false);
+    rightPaddle.requestMoveDown(false);
+
+    if (cpuPad.position.y > pos + epsilon) {
+      rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y - pos)));
+    } else if (cpuPad.position.y < pos - epsilon){
+      rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y - pos)));
+    }
+  }
+
+  function reflect() {
+    cpuPad = rightPaddle.getStatus();
+    ball = gameBall.getStatus();
+
+    if (ball.speed.lift) {
+      ball.speed.tan = sign(ball.speed.tan) / Math.sqrt(3);
+    }
+
+    var impact = findImpact();
+    aim = impact - cpuPad.length/2;
+
+    if (bouncing()) {
+      randPos = Math.random() * cpuPad.length - cpuPad.length/2;
+    }
+    aim += randPos;
+  }
+
+  function findImpact() {
+    cpuPad = rightPaddle.getStatus();
+    ball = gameBall.getStatus();
+
+    var impact = intersectX(ball.position.x - ball.speed.x, ball.position.y - ball.speed.y, ball.position.x, ball.position.y, cpuPad.position.x);
+
+    while ((impact < 0 ) || (impact > canvas.ySize)) {
+      if (impact < 0) {
+        impact = -impact;
+      }
+      if (impact > canvas.ySize) {
+        impact = canvas.ySize*2 - impact;
+      }
+    }
+    return impact;
+  }
+
+  function easy() {
+    rightPaddle.requestMoveUp(false);
+    rightPaddle.requestMoveDown(false);
+    if (!bouncing()) {
+      followBall(easyMaxSpeed);
+    }
+  }
+
+  function medium() {
+    rightPaddle.requestMoveUp(false);
+    rightPaddle.requestMoveDown(false);
+
+    if (!bouncing()) {
+      followBall(mediumMaxSpeed);
+    } else {
+      var rand = Math.random();
+      if (rand > 0.666) {
+        rightPaddle.requestMoveUp(true);
+      } else if (rand > 0.333) {
+        rightPaddle.requestMoveDown(true);
+      }
+    }
+  }
+
+  function hard() {
+    var cpuPad = rightPaddle.getStatus();
+    var ball = gameBall.getStatus();
+
+    if (ball.speed.x < 0) {
+      aim = canvas.ySize/2 - cpuPad.length/2;
+      randPos = 0;
+    } else {
+      reflect();
+    }
+
+    goto(aim);
+  }
+
   if (difficulty == "easy") {
-    return {
-      decide: function() {
-        var epsilon = 1;
-        rightPaddle.requestMoveUp(false);
-        rightPaddle.requestMoveDown(false);
-        var cpuPad = rightPaddle.getStatus();
-        var ball = gameBall.getStatus();
-        if (!bouncing()) {
-          if ((cpuPad.position.y + cpuPad.length * 1/2) > ball.position.y + ball.speed.y + epsilon) {
-            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), easyMaxSpeed));
-          } else if ((cpuPad.position.y + cpuPad.length * 1/2) < ball.position.y + ball.speed.y - epsilon) {
-            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), easyMaxSpeed));
-          }
-        }
-      }
-    };
+    return { decide: easy };
+
   } else if (difficulty == "medium") {
-    return {
-      decide: function() {
-        var epsilon = 1;
-        rightPaddle.requestMoveUp(false);
-        rightPaddle.requestMoveDown(false);
-        var cpuPad = rightPaddle.getStatus();
-        var ball = gameBall.getStatus();
-        if (!bouncing()) {
-          if ((cpuPad.position.y + cpuPad.length * 1/2) > ball.position.y + ball.speed.y + epsilon) {
-            rightPaddle.requestMoveUp(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), mediumMaxSpeed));
-          } else if ((cpuPad.position.y + cpuPad.length * 1/2) < ball.position.y + ball.speed.y - epsilon) {
-            rightPaddle.requestMoveDown(Math.min(Math.round(Math.abs(cpuPad.position.y + cpuPad.length * 1/2 - ball.position.y - ball.speed.y)), mediumMaxSpeed));
-          }
-        } else {
-          var rand = Math.random();
-          if (rand > 0.666) {
-            rightPaddle.requestMoveUp(true);
-          } else if (rand > 0.333) {
-            rightPaddle.requestMoveDown(true);
-          }
-        }
-      }
-    };
+    return { decide: medium };
+
   } else if (difficulty == "hard") {
-    var randPos = 0;
-    return {
-      decide: function() {
-        var cpuPad = rightPaddle.getStatus();
-        var ball = gameBall.getStatus();
-
-        if (ball.speed.x < 0) {
-          aim = canvas.ySize/2 - cpuPad.length/2;
-          randPos = 0;
-        } else {
-          this.reflect();
-        }
-
-        this.goto(aim);
-      },
-
-      goto: function(aim) {
-        var cpuPad = rightPaddle.getStatus();
-        var epsilon = 1;
-        rightPaddle.requestMoveUp(false);
-        rightPaddle.requestMoveDown(false);
-
-        if (cpuPad.position.y > aim + epsilon) {
-          rightPaddle.requestMoveUp(Math.round(Math.abs(cpuPad.position.y-aim)));
-        } else if (cpuPad.position.y < aim - epsilon){
-          rightPaddle.requestMoveDown(Math.round(Math.abs(cpuPad.position.y-aim)));
-        }
-      },
-
-      reflect: function() {
-        cpuPad = rightPaddle.getStatus();
-        ball = gameBall.getStatus();
-
-        if (ball.speed.lift) {
-          ball.speed.tan = sign(ball.speed.tan) / Math.sqrt(3);
-        }
-
-        var impact = this.findImpact();
-        aim = impact - cpuPad.length/2;
-
-        if (bouncing()) {
-          randPos = Math.random() * cpuPad.length - cpuPad.length/2;
-        }
-        aim += randPos;
-      },
-
-      findImpact: function() {
-        cpuPad = rightPaddle.getStatus();
-        ball = gameBall.getStatus();
-
-        var impact = intersectX(ball.position.x - ball.speed.x, ball.position.y - ball.speed.y, ball.position.x, ball.position.y, cpuPad.position.x);
-
-        while ((impact < 0 ) || (impact > canvas.ySize)) {
-          if (impact < 0) {
-            impact = -impact;
-          }
-          if (impact > canvas.ySize) {
-            impact = canvas.ySize*2 - impact;
-          }
-        }
-        return impact;
-      }
-    };
+    return { decide: hard };
   }
 }
 
