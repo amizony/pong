@@ -109,20 +109,18 @@ function Collider() {
       if (rightOffLimit()) {
         var nextRound = scoreCounter.addPointLeft();
         gameBall.initPos();
+        gameBall.freeze();
         if (nextRound) {
-          gameBall.initSpeed();
-        } else {
-          gameBall.freeze();
+          gameBall.launchBall();
         }
       }
 
       if (leftOffLimit()) {
         var nextRound = scoreCounter.addPointRight();
         gameBall.initPos();
+        gameBall.freeze();
         if (nextRound) {
-          gameBall.initSpeed();
-        } else {
-          gameBall.freeze();
+          gameBall.launchBall();
         }
       }
     }
@@ -284,6 +282,9 @@ function Ball() {
   }
 
   function calculateColor() {
+    if (speed.norm == 0) {
+      return [0, 0, 15];
+    }
     if ((speed.norm + speed.bonus > 17) && (speed.x > 0)) {
       leftPaddle.changeColor("high-speed");
     }
@@ -304,22 +305,29 @@ function Ball() {
     calculateXYSpeed();
   }
 
+
+  function initSpeed() {
+    speed.norm = 4;
+    speed.bonus = 0;
+    speed.tan = randomTangent();
+    speed.lift = false;
+    calculateXYSpeed();
+    var tossCoin = (Math.random() > 0.5);
+    if (tossCoin) {
+      speed.x = -speed.x
+    }
+  }
+
   return {
     freeze: function() {
       speed.x = 0;
       speed.y = 0;
+      speed.norm = 0;
+      speed.bonus = 0;
     },
 
-    initSpeed: function () {
-      speed.norm = 4;
-      speed.bonus = 0;
-      speed.tan = randomTangent();
-      speed.lift = false;
-      calculateXYSpeed();
-      var tossCoin = (Math.random() > 0.5);
-      if (tossCoin) {
-        speed.x = -speed.x
-      }
+    launchBall: function() {
+      setTimeout(initSpeed, 1000);
     },
 
     initPos: function() {
@@ -741,7 +749,7 @@ function Menu() {
     rightPaddle = new Paddle(canvas.xSize - 26, 250, "#eee");
     gameBall = new Ball();
     gameBall.initPos();
-    gameBall.initSpeed();
+    gameBall.launchBall();
     scoreCounter = new ScoreCounter(leftPlayer, rightPlayer);
     scoreCounter.resetScore();
     gameState = "playing";
