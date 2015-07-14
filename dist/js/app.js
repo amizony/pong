@@ -302,13 +302,13 @@ function Ball() {
   }
 
   function bounceSpeedUp(s) {
-    speed.norm += s;
+    speed.norm = Math.log(Math.exp(speed.norm) + Math.exp(speed.norm  * 3/4));
     calculateXYSpeed();
   }
 
 
   function initSpeed() {
-    speed.norm = 4;
+    speed.norm = 5;
     speed.bonus = 0;
     speed.tan = randomTangent();
     speed.lift = false;
