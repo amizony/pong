@@ -305,7 +305,6 @@ function Ball() {
     calculateXYSpeed();
   }
 
-
   function initSpeed() {
     speed.norm = 5;
     speed.bonus = 0;
@@ -517,8 +516,8 @@ function AI(difficulty) {
   }
 
   function reflect() {
-    cpuPad = rightPaddle.getStatus();
-    ball = gameBall.getStatus();
+    var cpuPad = rightPaddle.getStatus();
+    var ball = gameBall.getStatus();
 
     if (ball.speed.lift) {
       ball.speed.tan = sign(ball.speed.tan) / Math.sqrt(3);
@@ -534,8 +533,8 @@ function AI(difficulty) {
   }
 
   function findImpact() {
-    cpuPad = rightPaddle.getStatus();
-    ball = gameBall.getStatus();
+    var cpuPad = rightPaddle.getStatus();
+    var ball = gameBall.getStatus();
 
     var impact = intersectX(ball.position.x - ball.speed.x, ball.position.y - ball.speed.y, ball.position.x, ball.position.y, cpuPad.position.x);
 
