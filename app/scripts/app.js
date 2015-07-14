@@ -413,9 +413,9 @@ function Ball() {
       speed.x = -speed.x;
       speed.lift = false;
       speed.bonus = 0;
-      if (impact.y - leftPad.position.y < leftPad.length * 1/10) {
+      if (impact.y - leftPad.position.y < leftPad.length * 1/12) {
         speed.tan = -Math.sqrt(3);
-      } else if (impact.y - leftPad.position.y < leftPad.length * 9/10) {
+      } else if (impact.y - leftPad.position.y < leftPad.length * 11/12) {
         if (speed.y * leftPad.speed > 0) {
           speed.bonus = - speed.norm / 5;
           speed.lift = true;
@@ -431,7 +431,7 @@ function Ball() {
       }
       bounceSpeedUp(0.1);
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
-      position.x = impact.x + bounce;
+      position.x = Math.max(impact.x + bounce, leftPad.position.x + leftPad.width) ;
       position.y = impact.y + bounce * speed.tan;
     },
 
@@ -447,9 +447,9 @@ function Ball() {
       speed.x = -speed.x;
       speed.lift = false;
       speed.bonus = 0;
-      if (impact.y - rightPad.position.y < rightPad.length * 1/10) {
+      if (impact.y - rightPad.position.y < rightPad.length * 1/12) {
         speed.tan = Math.sqrt(3);
-      } else if (impact.y - rightPad.position.y < rightPad.length * 9/10) {
+      } else if (impact.y - rightPad.position.y < rightPad.length * 11/12) {
         if (speed.y * rightPad.speed > 0) {
           speed.bonus = - speed.norm / 5;
           speed.lift = true;
@@ -465,7 +465,7 @@ function Ball() {
       }
       bounceSpeedUp(0.1);
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
-      position.x = impact.x - bounce;
+      position.x = Math.min(impact.x - bounce, rightPad.position.x);
       position.y = impact.y + bounce * speed.tan;
     }
 
