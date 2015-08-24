@@ -109,20 +109,18 @@ function Collider() {
       if (rightOffLimit()) {
         var nextRound = scoreCounter.addPointLeft();
         gameBall.initPos();
+        gameBall.freeze();
         if (nextRound) {
-          gameBall.initSpeed();
-        } else {
-          gameBall.freeze();
+          gameBall.launchBall();
         }
       }
 
       if (leftOffLimit()) {
         var nextRound = scoreCounter.addPointRight();
         gameBall.initPos();
+        gameBall.freeze();
         if (nextRound) {
-          gameBall.initSpeed();
-        } else {
-          gameBall.freeze();
+          gameBall.launchBall();
         }
       }
     }
@@ -284,6 +282,9 @@ function Ball() {
   }
 
   function calculateColor() {
+    if (speed.norm == 0) {
+      return [0, 0, 15];
+    }
     if ((speed.norm + speed.bonus > 17) && (speed.x > 0)) {
       leftPaddle.changeColor("high-speed");
     }
@@ -300,26 +301,32 @@ function Ball() {
   }
 
   function bounceSpeedUp(s) {
-    speed.norm += s;
+    speed.norm = Math.log(Math.exp(speed.norm) + Math.exp(speed.norm  * 3/4));
     calculateXYSpeed();
+  }
+
+  function initSpeed() {
+    speed.norm = 5;
+    speed.bonus = 0;
+    speed.tan = randomTangent();
+    speed.lift = false;
+    calculateXYSpeed();
+    var tossCoin = (Math.random() > 0.5);
+    if (tossCoin) {
+      speed.x = -speed.x
+    }
   }
 
   return {
     freeze: function() {
       speed.x = 0;
       speed.y = 0;
+      speed.norm = 0;
+      speed.bonus = 0;
     },
 
-    initSpeed: function () {
-      speed.norm = 4;
-      speed.bonus = 0;
-      speed.tan = randomTangent();
-      speed.lift = false;
-      calculateXYSpeed();
-      var tossCoin = (Math.random() > 0.5);
-      if (tossCoin) {
-        speed.x = -speed.x
-      }
+    launchBall: function() {
+      setTimeout(initSpeed, 1000);
     },
 
     initPos: function() {
@@ -406,9 +413,9 @@ function Ball() {
       speed.x = -speed.x;
       speed.lift = false;
       speed.bonus = 0;
-      if (impact.y - leftPad.position.y < leftPad.length * 1/10) {
+      if (impact.y - leftPad.position.y < leftPad.length * 1/12) {
         speed.tan = -Math.sqrt(3);
-      } else if (impact.y - leftPad.position.y < leftPad.length * 9/10) {
+      } else if (impact.y - leftPad.position.y < leftPad.length * 11/12) {
         if (speed.y * leftPad.speed > 0) {
           speed.bonus = - speed.norm / 5;
           speed.lift = true;
@@ -424,7 +431,7 @@ function Ball() {
       }
       bounceSpeedUp(0.1);
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
-      position.x = impact.x + bounce;
+      position.x = Math.max(impact.x + bounce, leftPad.position.x + leftPad.width) ;
       position.y = impact.y + bounce * speed.tan;
     },
 
@@ -440,9 +447,9 @@ function Ball() {
       speed.x = -speed.x;
       speed.lift = false;
       speed.bonus = 0;
-      if (impact.y - rightPad.position.y < rightPad.length * 1/10) {
+      if (impact.y - rightPad.position.y < rightPad.length * 1/12) {
         speed.tan = Math.sqrt(3);
-      } else if (impact.y - rightPad.position.y < rightPad.length * 9/10) {
+      } else if (impact.y - rightPad.position.y < rightPad.length * 11/12) {
         if (speed.y * rightPad.speed > 0) {
           speed.bonus = - speed.norm / 5;
           speed.lift = true;
@@ -458,7 +465,7 @@ function Ball() {
       }
       bounceSpeedUp(0.1);
       var bounce = calculateBounceAbscissa(impact.x - position.x, impact.y - position.y, speed.tan);
-      position.x = impact.x - bounce;
+      position.x = Math.min(impact.x - bounce, rightPad.position.x);
       position.y = impact.y + bounce * speed.tan;
     }
 
@@ -509,8 +516,8 @@ function AI(difficulty) {
   }
 
   function reflect() {
-    cpuPad = rightPaddle.getStatus();
-    ball = gameBall.getStatus();
+    var cpuPad = rightPaddle.getStatus();
+    var ball = gameBall.getStatus();
 
     if (ball.speed.lift) {
       ball.speed.tan = sign(ball.speed.tan) / Math.sqrt(3);
@@ -526,8 +533,8 @@ function AI(difficulty) {
   }
 
   function findImpact() {
-    cpuPad = rightPaddle.getStatus();
-    ball = gameBall.getStatus();
+    var cpuPad = rightPaddle.getStatus();
+    var ball = gameBall.getStatus();
 
     var impact = intersectX(ball.position.x - ball.speed.x, ball.position.y - ball.speed.y, ball.position.x, ball.position.y, cpuPad.position.x);
 
@@ -741,7 +748,7 @@ function Menu() {
     rightPaddle = new Paddle(canvas.xSize - 26, 250, "#eee");
     gameBall = new Ball();
     gameBall.initPos();
-    gameBall.initSpeed();
+    gameBall.launchBall();
     scoreCounter = new ScoreCounter(leftPlayer, rightPlayer);
     scoreCounter.resetScore();
     gameState = "playing";
