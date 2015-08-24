@@ -1,12 +1,21 @@
 body {
-  background-color: #aaa;
-  font-family: monospace; }
+  background-color: #111;
+  font-family: monospace;
+  color: #ddd; }
 
 h1 {
   text-align: center;
   font-size: 60px;
   font-family: cursive;
-  text-transform: uppercase; }
+  text-transform: uppercase;
+  color: #ddd; }
+
+canvas {
+  display: block;
+  border-top: 2px solid #ddd;
+  border-bottom: 2px solid #ddd;
+  margin: 0 auto;
+  background: #111; }
 
 .hud {
   width: 800px;
@@ -41,6 +50,10 @@ h1 {
   font-style: italic;
   font-family: cursive;
   font-weight: bold; }
+
+.bottom {
+  width: 800px;
+  margin: 0 auto; }
 
 #speed {
   display: inline-block;
@@ -109,13 +122,3 @@ h1 {
   color: inherit;
   font-style: italic;
   font-size: 16px; }
-
-canvas {
-  display: block;
-  border: 1px solid black;
-  margin: 0 auto;
-  background: #111; }
-
-.bottom {
-  width: 800px;
-  margin: 0 auto; }

@@ -1,6 +1,11 @@
+$color-black: #111;
+$color-white: #ddd;
+
+
 body {
-  background-color: #aaa;
+  background-color: $color-black;
   font-family: monospace;
+  color: $color-white;
 }
 
 h1 {
@@ -8,7 +13,19 @@ h1 {
   font-size: 60px;
   font-family: cursive;
   text-transform: uppercase;
+  color: $color-white;
 }
+
+canvas {
+  display: block;
+  border-top: 2px solid $color-white;
+  border-bottom: 2px solid $color-white;
+  margin: 0 auto;
+  background: $color-black;
+}
+
+
+// Top menu with player's name and score
 
 .hud {
   width: 800px;
@@ -48,6 +65,14 @@ h1 {
   font-weight: bold;
 }
 
+
+// bottom menu with ball speed and fps
+
+.bottom {
+  width: 800px;
+  margin: 0 auto;
+}
+
 #speed {
   display: inline-block;
   width: 350px;
@@ -71,6 +96,9 @@ h1 {
     font-family: monospace;
   }
 }
+
+
+// overlay menu displayed on top of the canvas
 
 .menu {
   position: absolute;
@@ -116,7 +144,7 @@ h1 {
   margin: 0 auto;
   margin-top: -15px;
   text-align: center;
-  color: #111;
+  color: $color-black;
 }
 
 .highlight .white {
@@ -129,16 +157,4 @@ h1 {
   color: inherit;
   font-style: italic;
   font-size: 16px;
-}
-
-canvas {
-  display: block;
-  border: 1px solid black;
-  margin: 0 auto;
-  background: #111;
-}
-
-.bottom {
-  width: 800px;
-  margin: 0 auto;
 }
