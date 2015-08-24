@@ -1,9 +1,12 @@
 body {
-  background-color: #aaa; }
+  background-color: #aaa;
+  font-family: monospace; }
 
 h1 {
   text-align: center;
-  font-size: 48px; }
+  font-size: 60px;
+  font-family: cursive;
+  text-transform: uppercase; }
 
 .hud {
   width: 800px;
@@ -11,15 +14,51 @@ h1 {
 
 #left {
   display: inline-block;
-  width: 378px;
-  height: 50px;
-  padding-left: 20px; }
+  width: 200px;
+  height: 40px;
+  margin-left: 60px;
+  font-size: 30px;
+  text-transform: uppercase;
+  font-style: italic;
+  font-family: cursive;
+  font-weight: bold; }
+
+#middle {
+  display: inline-block;
+  width: 200px;
+  height: 40px;
+  margin-left: 32px;
+  margin-right: 32px;
+  font-size: 30px; }
 
 #right {
   display: inline-block;
-  width: 378px;
-  height: 50px;
-  padding-right: 20px; }
+  width: 200px;
+  height: 40px;
+  margin-right: 60px;
+  font-size: 30px;
+  text-transform: uppercase;
+  font-style: italic;
+  font-family: cursive;
+  font-weight: bold; }
+
+#speed {
+  display: inline-block;
+  width: 350px;
+  margin-left: 40px;
+  font-size: 24px;
+  font-family: cursive; }
+  #speed span {
+    font-family: monospace; }
+
+#fps-div {
+  display: inline-block;
+  width: 350px;
+  margin-right: 40px;
+  font-size: 24px;
+  font-family: cursive; }
+  #fps-div span {
+    font-family: monospace; }
 
 .menu {
   position: absolute;
@@ -35,7 +74,7 @@ h1 {
   width: 300px;
   margin: 0 auto;
   text-align: center;
-  font-size: 36px;
+  font-size: 24px;
   color: white; }
 
 .btn {
@@ -43,7 +82,7 @@ h1 {
   width: 300px;
   margin: 0 auto;
   text-align: center;
-  font-size: 36px;
+  font-size: 24px;
   color: white; }
 
 .btn:hover {
@@ -80,13 +119,3 @@ canvas {
 .bottom {
   width: 800px;
   margin: 0 auto; }
-
-#speed {
-  display: inline-block;
-  width: 378px;
-  padding-left: 20px; }
-
-#fps-div {
-  display: inline-block;
-  width: 378px;
-  padding-right: 20px; }

@@ -343,7 +343,7 @@ function Ball() {
     },
 
     displaySpeed: function() {
-      document.getElementById("speed").innerHTML = "Ball speed:  " + Math.round((speed.norm + speed.bonus)*60) + " (px/s)";
+      document.getElementById("speed").innerHTML = "Ball speed: <span>" + Math.round((speed.norm + speed.bonus)*60) + "</span> (px/s)";
     },
 
     getStatus: function() {
@@ -611,10 +611,13 @@ function ScoreCounter(player1, player2) {
 
   function updateDisplay() {
     var left = document.getElementById("left");
-    left.innerHTML = leftPlayer + "<br>" + leftScore;
+    left.innerHTML = leftPlayer;
+
+    var middle = document.getElementById("middle");
+    middle.innerHTML = leftScore + "  |  " + rightScore;
 
     var right = document.getElementById("right");
-    right.innerHTML = rightPlayer + "<br>" + rightScore;
+    right.innerHTML = rightPlayer;
   }
 
   return {
@@ -868,7 +871,7 @@ document.getElementById("victory").style.display = "none";
 
 window.setInterval( function() {
   var fpsPosition = document.getElementById("fps-div");
-  fps = "fps: " + frames;
+  fps = "fps: <span>" + frames + "</span>";
   frames = 0;
   fpsPosition.innerHTML = fps;
 }, 1000);
